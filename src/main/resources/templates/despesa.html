@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gerenciamento de Despesas</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <style>
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+    </style>
+
+</head>
+
+
+<body class="bg-slate-50 text-slate-800 min-h-screen antialiased selection:bg-rose-500 selection:text-white p-4 sm:p-8">
+
+
+    <!-- FORMULÁRIO DE CADASTRO -->
+
+    <div class="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 mb-8">
+
+
+        <!-- CABEÇALHO -->
+
+        <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+
+            <div class="flex items-center gap-3">
+
+                <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl border border-rose-100">
+
+                    <svg class="w-5 h-5"
+                         fill="none"
+                         stroke="currentColor"
+                         viewBox="0 0 24 24">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M20 12H4">
+                        </path>
+
+                    </svg>
+
+                </div>
+
+
+                <div>
+
+                    <h2 class="text-xl font-bold text-slate-900 tracking-tight">
+                        Nova Despesa
+                    </h2>
+
+                    <p class="text-xs font-medium text-slate-400 mt-0.5">
+                        Registre suas saídas e parcelamentos
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <a th:href="@{/home}"
+               class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl transition-all duration-150">
+
+                <span>←</span>
+
+                Voltar
+
+            </a>
+
+        </div>
+
+
+        <!-- FORMULÁRIO -->
+
+        <form th:action="@{/despesa}"
+              th:object="${despesa}"
+              method="POST"
+              class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+
+            <!-- DESCRIÇÃO -->
+
+            <div>
+
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1.5 tracking-wider">
+
+                    Descrição
+
+                </label>
+
+                <input type="text"
+                       th:field="*{descricao}"
+                       required
+                       placeholder="Ex: Supermercado, Aluguel..."
+
+                       class="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition duration-150 placeholder:text-slate-400">
+
+            </div>
+
+
+            <!-- CATEGORIA -->
+
+            <div>
+
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1.5 tracking-wider">
+
+                    Categoria
+
+                </label>
+
+                <select th:field="*{categoria.id}"
+
+                        class="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition duration-150">
+
+                    <option value="">
+                        Selecione uma categoria
+                    </option>
+
+                    <option th:each="categoria : ${categorias}"
+                            th:value="${categoria.id}"
+                            th:text="${categoria.nome}">
+
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- VALOR TOTAL -->
+
+            <div>
+
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1.5 tracking-wider">
+
+                    Valor Total
+
+                </label>
+
+                <input type="number"
+                       step="0.01"
+                       th:field="*{valorTotal}"
+                       required
+                       placeholder="0,00"
+
+                       class="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition duration-150 placeholder:text-slate-400">
+
+            </div>
+
+
+            <!-- DATA DA COMPRA -->
+
+            <div>
+
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1.5 tracking-wider">
+
+                    Data da Compra
+
+                </label>
+
+                <input type="date"
+                       th:field="*{dataCompra}"
+                       required
+
+                       class="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition duration-150">
+
+            </div>
+
+
+            <!-- FORMA DE PAGAMENTO -->
+
+            <div>
+
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1.5 tracking-wider">
+
+                    Forma de Pagamento
+
+                </label>
+
+                <select id="formaPagamento"
+                        th:field="*{formaPagamento}"
+
+                        class="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition duration-150">
+
+                    <option value="DINHEIRO">
+                        Dinheiro/PIX
+                    </option>
+
+                    <option value="CARTAO">
+                        Cartão de Crédito
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- CARTÃO -->
+
+            <div id="campoCartao">
+
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1.5 tracking-wider">
+
+                    Cartão de Crédito
+
+                </label>
+
+                <select id="cartaoSelect"
+                        th:field="*{cartao.id}"
+
+                        class="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition duration-150">
+
+                    <option value="">
+                        Selecione um cartão
+                    </option>
+
+                    <option th:each="cartao : ${cartoes}"
+                            th:value="${cartao.id}"
+                            th:text="${cartao.nome}">
+
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- RESPONSÁVEL PELO GASTO -->
+
+            <div class="sm:col-span-2">
+
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1.5 tracking-wider">
+
+                    Responsável pelo Gasto
+
+                </label>
+
+
+                <select id="tipoGasto"
+
+                        class="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition duration-150">
+
+                    <option value="PROPRIO">
+                        Meu gasto
+                    </option>
+
+                    <option value="TERCEIRO">
+                        Gasto de outra pessoa
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- PESSOA -->
+
+            <div id="campoPessoa"
+                 class="sm:col-span-2 hidden">
+
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1.5 tracking-wider">
+
+                    Quem é o responsável?
+
+                </label>
+
+
+                <select id="pessoaSelect"
+                        th:field="*{pessoa.id}"
+
+                        class="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition duration-150">
+
+                    <option value="">
+                        Selecione uma pessoa
+                    </option>
+
+
+                    <option th:each="pessoa : ${pessoas}"
+                            th:value="${pessoa.id}"
+                            th:text="${pessoa.nome}">
+
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- PARCELAS -->
+
+            <div id="campoParcelas"
+                 class="col-span-1 sm:col-span-2">
+
+                <label class="block text-xs uppercase font-bold text-slate-500 mb-1.5 tracking-wider">
+
+                    Número de Parcelas
+
+                </label>
+
+
+                <input id="qtdParcelas"
+                       type="number"
+                       min="1"
+                       th:field="*{qtdParcelas}"
+                       placeholder="1"
+
+                       class="w-full sm:w-1/2 border border-slate-200 bg-slate-50/50 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition duration-150">
+
+            </div>
+
+
+            <!-- BOTÃO CONFIRMAR -->
+
+            <div class="sm:col-span-2 flex justify-end pt-3">
+
+                <button type="submit"
+
+                        class="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-sm transition-all duration-150">
+
+                    <span>✓</span>
+
+                    Confirmar Inserção
+
+                </button>
+
+            </div>
+
+
+        </form>
+
+    </div>
+
+
+    <!-- TABELA -->
+
+    <div class="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100">
+
+
+        <div class="flex items-center gap-2.5 mb-6 pb-4 border-b border-slate-100">
+
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+
+            <h2 class="text-lg font-bold text-slate-900 tracking-tight">
+
+                Minhas Despesas
+
+            </h2>
+
+        </div>
+
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-left border-collapse">
+
+
+                <thead>
+
+                    <tr class="border-b border-slate-100 bg-slate-50/50">
+
+                        <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">
+                            Descrição
+                        </th>
+
+                        <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">
+                            Categoria
+                        </th>
+
+                        <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">
+                            Valor
+                        </th>
+
+                        <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">
+                            Data
+                        </th>
+
+                        <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">
+                            Pagamento
+                        </th>
+
+                        <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">
+                            Responsável
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-slate-100">
+
+
+                    <tr th:each="d : ${paginaDespesa.content}"
+
+                        class="hover:bg-slate-50/80 transition duration-150">
+
+
+                        <!-- DESCRIÇÃO -->
+
+                        <td class="p-3 text-sm font-semibold text-slate-800"
+
+                            th:text="${d.descricao}">
+
+                            Supermercado
+
+                        </td>
+
+
+                        <!-- CATEGORIA -->
+
+                        <td class="p-3">
+
+                            <span
+
+                                class="inline-block bg-slate-100 text-slate-600 text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200/60"
+
+                                th:text="${d.categoria.nome}">
+
+                                Alimentação
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- VALOR -->
+
+                        <td class="p-3 text-sm font-extrabold text-rose-600"
+
+                            th:text="${'R$ ' + #numbers.formatDecimal(d.valorTotal, 1, 2)}">
+
+                            R$ 250,00
+
+                        </td>
+
+
+                        <!-- DATA -->
+
+                        <td class="p-3 text-xs font-medium text-slate-500"
+
+                            th:text="${#temporals.format(d.dataCompra, 'dd/MM/yyyy')}">
+
+                            10/05/2026
+
+                        </td>
+
+
+                        <!-- PAGAMENTO -->
+
+                        <td class="p-3">
+
+                            <span
+
+                                class="text-[11px] font-bold px-2 py-0.5 rounded-md border uppercase tracking-wider bg-slate-50 text-slate-600 border-slate-200"
+
+                                th:text="${d.formaPagamento}">
+
+                                CARTAO
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- RESPONSÁVEL -->
+
+                        <td class="p-3">
+
+                            <span th:if="${d.pessoa == null}"
+
+                                  class="inline-block bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-lg border border-emerald-100">
+
+                                Meu gasto
+
+                            </span>
+
+
+                            <span th:if="${d.pessoa != null}"
+
+                                  class="inline-block bg-amber-50 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-100"
+
+                                  th:text="${d.pessoa.nome}">
+
+                                Pessoa
+
+                            </span>
+
+                        </td>
+
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        const formaPagamento =
+            document.getElementById('formaPagamento');
+
+        const campoCartao =
+            document.getElementById('campoCartao');
+
+        const campoParcelas =
+            document.getElementById('campoParcelas');
+
+        const cartaoSelect =
+            document.getElementById('cartaoSelect');
+
+        const qtdParcelas =
+            document.getElementById('qtdParcelas');
+
+
+        const tipoGasto =
+            document.getElementById('tipoGasto');
+
+        const campoPessoa =
+            document.getElementById('campoPessoa');
+
+        const pessoaSelect =
+            document.getElementById('pessoaSelect');
+
+
+        /*
+         * CARTÃO
+         */
+
+        function controlarCamposCartao() {
+
+            if (formaPagamento.value === 'CARTAO') {
+
+                campoCartao.style.display = 'block';
+
+                campoParcelas.style.display = 'block';
+
+                cartaoSelect.required = true;
+
+                qtdParcelas.required = true;
+
+            } else {
+
+                campoCartao.style.display = 'none';
+
+                campoParcelas.style.display = 'none';
+
+                cartaoSelect.required = false;
+
+                qtdParcelas.required = false;
+
+                cartaoSelect.value = '';
+
+                qtdParcelas.value = '';
+
+            }
+
+        }
+
+
+        /*
+         * PESSOA
+         */
+
+        function controlarCampoPessoa() {
+
+            if (tipoGasto.value === 'TERCEIRO') {
+
+                campoPessoa.style.display = 'block';
+
+                pessoaSelect.required = true;
+
+            } else {
+
+                campoPessoa.style.display = 'none';
+
+                pessoaSelect.required = false;
+
+                pessoaSelect.value = '';
+
+            }
+
+        }
+
+
+        formaPagamento.addEventListener(
+            'change',
+            controlarCamposCartao
+        );
+
+
+        tipoGasto.addEventListener(
+            'change',
+            controlarCampoPessoa
+        );
+
+
+        controlarCamposCartao();
+
+        controlarCampoPessoa();
+
+    </script>
+
+
+</body>
+
+</html>

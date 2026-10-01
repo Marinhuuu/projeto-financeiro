@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.gabriel.financeiro.entities.CartaoCredito;
+import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.Despesa;
 import com.gabriel.financeiro.entities.FaturaCartao;
@@ -18,6 +19,7 @@ import com.gabriel.financeiro.entities.Parcela;
 import com.gabriel.financeiro.entities.Pessoa;
 import com.gabriel.financeiro.enums.StatusParcela;
 import com.gabriel.financeiro.repository.CartaoRepository;
+import com.gabriel.financeiro.repository.CategoriaRepository;
 import com.gabriel.financeiro.repository.DespesaRepository;
 import com.gabriel.financeiro.repository.ParcelaRepository;
 import com.gabriel.financeiro.repository.PessoaRepository;
@@ -33,17 +35,20 @@ public class DespesaService {
 	private final FaturaCartaoService faturaService;
 	private final CartaoRepository cartaoRepo;
 	private final PessoaRepository pessoaRepo;
+	private final CategoriaRepository categoriaRepo;
+
+
 
 	public DespesaService(DespesaRepository despesaRepo, CicloFinanceiroService cicloService,
 			ParcelaRepository parcelaRepo, FaturaCartaoService faturaService, CartaoRepository cartaoRepo,
-			PessoaRepository pessoaRepo) {
-
+			PessoaRepository pessoaRepo, CategoriaRepository categoriaRepo) {
 		this.despesaRepo = despesaRepo;
 		this.cicloService = cicloService;
 		this.parcelaRepo = parcelaRepo;
 		this.faturaService = faturaService;
 		this.cartaoRepo = cartaoRepo;
 		this.pessoaRepo = pessoaRepo;
+		this.categoriaRepo = categoriaRepo;
 	}
 
 	public Page<Despesa> ListDespesa(Pageable pageable) {
@@ -108,6 +113,16 @@ public class DespesaService {
 
 			despesa.setPessoa(null);
 		}
+		
+		if (despesa.getCategoria() == null || despesa.getCategoria().getId() == null) {
+
+		    throw new RuntimeException("É necessário selecionar uma categoria");
+		}
+
+		Categoria categoria = categoriaRepo.findById(despesa.getCategoria().getId())
+		        .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+		despesa.setCategoria(categoria);
 
 		Despesa despesaSalva = despesaRepo.save(despesa);
 

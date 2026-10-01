@@ -38,6 +38,11 @@ public class HomeController {
 		this.faturaRepo = faturaRepo;
 	}
 
+	@GetMapping("/")
+	public String redirectHome() {
+		return "redirect:/home";
+	}
+
 	@GetMapping("/home")
 	public String home(Model model) {
 
@@ -141,20 +146,14 @@ public class HomeController {
 
 		if (quantidadeParcelasProprias > 0) {
 
-			valorParcelaPropria = totalParcelasProprias.divide(
-					BigDecimal.valueOf(quantidadeParcelasProprias),
-					2,
-					RoundingMode.HALF_UP
-			);
+			valorParcelaPropria = totalParcelasProprias.divide(BigDecimal.valueOf(quantidadeParcelasProprias), 2,
+					RoundingMode.HALF_UP);
 		}
 
 		if (quantidadeParcelasTerceiros > 0) {
 
-			valorParcelaTerceiro = totalParcelasTerceiros.divide(
-					BigDecimal.valueOf(quantidadeParcelasTerceiros),
-					2,
-					RoundingMode.HALF_UP
-			);
+			valorParcelaTerceiro = totalParcelasTerceiros.divide(BigDecimal.valueOf(quantidadeParcelasTerceiros), 2,
+					RoundingMode.HALF_UP);
 		}
 
 		// =========================================================
@@ -170,33 +169,21 @@ public class HomeController {
 		LocalDate dataReferencia;
 
 		if (hoje.getDayOfMonth() >= diaFechamento) {
-		    dataReferencia = LocalDate.of(
-		            hoje.getYear(),
-		            hoje.getMonth(),
-		            diaFechamento
-		    ).plusMonths(1);
+			dataReferencia = LocalDate.of(hoje.getYear(), hoje.getMonth(), diaFechamento).plusMonths(1);
 		} else {
-		    dataReferencia = LocalDate.of(
-		            hoje.getYear(),
-		            hoje.getMonth(),
-		            diaFechamento
-		    );
+			dataReferencia = LocalDate.of(hoje.getYear(), hoje.getMonth(), diaFechamento);
 		}
 
 		Integer mesAtual = dataReferencia.getMonthValue();
 		Integer anoAtual = dataReferencia.getYear();
 
-		List<FaturaCartao> faturas =
-		        faturaRepo.findByMesReferenciaAndAnoReferencia(mesAtual, anoAtual);
-		
+		List<FaturaCartao> faturas = faturaRepo.findByMesReferenciaAndAnoReferencia(mesAtual, anoAtual);
 
 		// =========================================================
 		// TOTAL DAS FATURAS DO MÊS
 		// =========================================================
-		BigDecimal somaFaturaMes = faturas.stream()
-		        .map(FaturaCartao::getValorTotal)
-		        .filter(valor -> valor != null)
-		        .reduce(BigDecimal.ZERO, BigDecimal::add);
+		BigDecimal somaFaturaMes = faturas.stream().map(FaturaCartao::getValorTotal).filter(valor -> valor != null)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		// =========================================================
 		// SALDO DO MÊS
@@ -213,9 +200,7 @@ public class HomeController {
 		// QUANTIDADE DE FATURAS
 		// =========================================================
 
-		long totalFaturasAbertas = faturas.stream()
-				.filter(f -> f.getStatusFatura() != null)
-				.count();
+		long totalFaturasAbertas = faturas.stream().filter(f -> f.getStatusFatura() != null).count();
 
 		// =========================================================
 		// ENVIA PARA O THYMELEAF
@@ -248,8 +233,8 @@ public class HomeController {
 
 		model.addAttribute("quantidadeParcelasTerceiros", quantidadeParcelasTerceiros);
 
-		model.addAttribute("totalFaturaMes", somaFaturaMes);	
-		
+		model.addAttribute("totalFaturaMes", somaFaturaMes);
+
 		model.addAttribute("totalFaturasAbertas", totalFaturasAbertas);
 
 		model.addAttribute("faturas", faturas);

@@ -29,7 +29,9 @@ public class Despesa {
 
 	private LocalDate dataCompra;
 
-	private String formaPagamento;
+	@ManyToOne
+	@JoinColumn(name = "forma_pagamento_id", nullable = true)
+	private FormaPagamento formaPagamento;
 
 	private Integer qtdParcelas;
 	
@@ -58,7 +60,7 @@ public class Despesa {
 	}
 
 	public Despesa(UUID id, String descricao, BigDecimal valorTotal, LocalDate dataCompra,
-			String formaPagamento, Integer qtdParcelas, Categoria categoria) {
+			FormaPagamento formaPagamento, Integer qtdParcelas, Categoria categoria) {
 
 		this.id = id;
 		this.descricao = descricao;
@@ -101,11 +103,11 @@ public class Despesa {
 		this.dataCompra = dataCompra;
 	}
 
-	public String getFormaPagamento() {
+	public FormaPagamento getFormaPagamento() {
 		return formaPagamento;
 	}
 
-	public void setFormaPagamento(String formaPagamento) {
+	public void setFormaPagamento(FormaPagamento formaPagamento) {
 		this.formaPagamento = formaPagamento;
 	}
 

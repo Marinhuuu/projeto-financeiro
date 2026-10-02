@@ -17,10 +17,12 @@ import com.gabriel.financeiro.entities.Despesa;
 import com.gabriel.financeiro.entities.FaturaCartao;
 import com.gabriel.financeiro.entities.Parcela;
 import com.gabriel.financeiro.entities.Pessoa;
+import com.gabriel.financeiro.entities.FormaPagamento;
 import com.gabriel.financeiro.enums.StatusParcela;
 import com.gabriel.financeiro.repository.CartaoRepository;
 import com.gabriel.financeiro.repository.CategoriaRepository;
 import com.gabriel.financeiro.repository.DespesaRepository;
+import com.gabriel.financeiro.repository.FormaPagamentoRepository;
 import com.gabriel.financeiro.repository.ParcelaRepository;
 import com.gabriel.financeiro.repository.PessoaRepository;
 
@@ -36,12 +38,12 @@ public class DespesaService {
 	private final CartaoRepository cartaoRepo;
 	private final PessoaRepository pessoaRepo;
 	private final CategoriaRepository categoriaRepo;
-
-
+	private final FormaPagamentoRepository formaPagamentoRepo;
 
 	public DespesaService(DespesaRepository despesaRepo, CicloFinanceiroService cicloService,
 			ParcelaRepository parcelaRepo, FaturaCartaoService faturaService, CartaoRepository cartaoRepo,
-			PessoaRepository pessoaRepo, CategoriaRepository categoriaRepo) {
+			PessoaRepository pessoaRepo, CategoriaRepository categoriaRepo,
+			FormaPagamentoRepository formaPagamentoRepo) {
 		this.despesaRepo = despesaRepo;
 		this.cicloService = cicloService;
 		this.parcelaRepo = parcelaRepo;
@@ -49,6 +51,7 @@ public class DespesaService {
 		this.cartaoRepo = cartaoRepo;
 		this.pessoaRepo = pessoaRepo;
 		this.categoriaRepo = categoriaRepo;
+		this.formaPagamentoRepo = formaPagamentoRepo;
 	}
 
 	public Page<Despesa> ListDespesa(Pageable pageable) {
@@ -69,11 +72,26 @@ public class DespesaService {
 
 		// Se não informou pessoa,
 		// consideramos que a despesa é do próprio Gabriel.
-		//
-		// Não precisamos fazer nada aqui.
 		// Pessoa continua null.
 
-		if ("CARTAO".equals(despesa.getFormaPagamento())) {
+		FormaPagamento formaPagamento = null;
+		if (despesa.getFormaPagamento() != null && despesa.getFormaPagamento().getId() != null) {
+			formaPagamento = formaPagamentoRepo.findById(despesa.getFormaPagamento().getId())
+					.orElseThrow(() -> new RuntimeException("Forma de pagamento não encontrada"));
+		} else if (despesa.getFormaPagamento() != null && despesa.getFormaPagamento().getCodigo() != null) {
+			formaPagamento = formaPagamentoRepo.findByCodigo(despesa.getFormaPagamento().getCodigo())
+					.orElse(null);
+		}
+		despesa.setFormaPagamento(formaPagamento);
+
+		boolean isCartao = formaPagamento != null && (
+				Boolean.TRUE.equals(formaPagamento.getPermiteParcelamento()) ||
+				"CARTAO_CREDITO".equalsIgnoreCase(formaPagamento.getCodigo()) ||
+				"CARTAO".equalsIgnoreCase(formaPagamento.getCodigo()) ||
+				"Cartão de Crédito".equalsIgnoreCase(formaPagamento.getNome())
+		);
+
+		if (isCartao) {
 
 			if (despesa.getCartao() == null || despesa.getCartao().getId() == null) {
 
@@ -126,7 +144,7 @@ public class DespesaService {
 
 		Despesa despesaSalva = despesaRepo.save(despesa);
 
-		if ("CARTAO".equals(despesaSalva.getFormaPagamento())) {
+		if (isCartao) {
 
 			gerarParcelas(despesaSalva);
 		}

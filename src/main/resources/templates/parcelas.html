@@ -7,6 +7,28 @@
     <title>Gestão de Parcelas - Dashboard</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,34 +37,47 @@
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-800 min-h-screen antialiased selection:bg-indigo-500 selection:text-white p-4 sm:p-8">
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen antialiased selection:bg-indigo-500 selection:text-white p-4 sm:p-8 transition-colors duration-200">
 
 <div class="max-w-6xl mx-auto space-y-6">
 
     <!-- HEADER -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
 
         <div class="flex items-center gap-3.5">
-            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
+            <div class="p-3 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-800/40">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
             <div>
-                <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
                     Painel de Parcelas
                 </h1>
 
-                <p class="text-xs sm:text-sm font-medium text-slate-400 mt-0.5">
+                <p class="text-xs sm:text-sm font-medium text-slate-400 dark:text-slate-400 mt-0.5">
                     Acompanhe e gerencie o fluxo de pagamentos futuros
                 </p>
             </div>
         </div>
 
-        <a th:href="@{/home}"
-           class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all duration-150">
+        <div class="flex items-center gap-2">
+            <!-- BOTÃO DARK MODE -->
+            <button type="button"
+                    onclick="toggleDarkMode()"
+                    class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition duration-150 shadow-sm flex items-center justify-center"
+                    title="Alternar Modo Escuro/Claro">
+                <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <svg class="w-4 h-4 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
 
-            <span>←</span> Voltar para o Início
-
-        </a>
+            <a th:href="@{/home}"
+               class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-slate-300 text-slate-700 dark:text-slate-200 font-bold text-xs px-4 py-2.5 rounded-xl transition-all duration-150 border border-slate-200/60 dark:border-slate-700">
+                <span>←</span> Voltar para o Início
+            </a>
+        </div>
 
     </div>
 
@@ -51,15 +86,16 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 
         <!-- PENDENTES -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
 
             <div>
 
-                <p class="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">
+                <p class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1">
                     Total Pendente
                 </p>
 
-                <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight"
+                <h3 id="totalPendenteValor"
+                    class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
                     th:text="${'R$ ' + #numbers.formatDecimal(totalPendente ?: 0, 1, 2)}">
 
                     R$ 0,00
@@ -68,7 +104,7 @@
 
             </div>
 
-            <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-800/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
 
@@ -76,15 +112,16 @@
 
 
         <!-- PAGAS -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
 
             <div>
 
-                <p class="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">
+                <p class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
                     Total Quitado
                 </p>
 
-                <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight"
+                <h3 id="totalPagoValor"
+                    class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
                     th:text="${'R$ ' + #numbers.formatDecimal(totalPago ?: 0, 1, 2)}">
 
                     R$ 0,00
@@ -93,7 +130,7 @@
 
             </div>
 
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
 
@@ -101,27 +138,29 @@
 
 
         <!-- PERCENTUAL -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col justify-center">
 
             <div class="flex justify-between items-center mb-3">
 
-                <p class="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                <p class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                     Taxa de Quitação
                 </p>
 
-                <span class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100"
-                      th:text="${percentualPago ?: '0%'}">
+                <span id="percentualPagoBadge"
+                      class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800/40"
+                      th:text="${percentualPago != null ? #numbers.formatDecimal(percentualPago, 1, 2) + '%' : '0.00%'}">
 
-                    0%
+                    0.00%
 
                 </span>
 
             </div>
 
-            <div class="w-full bg-slate-100 rounded-full h-3 p-0.5 overflow-hidden">
+            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 p-0.5 overflow-hidden">
 
-                <div class="bg-indigo-600 h-2 rounded-full transition-all duration-500 shadow-sm"
-                     th:style="'width:' + (percentualPago ?: '0%')">
+                <div id="percentualPagoBarra"
+                     class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-500 shadow-sm"
+                     th:style="'width:' + ${percentualPago != null ? percentualPago : 0} + '%'">
                 </div>
 
             </div>
@@ -132,15 +171,15 @@
 
 
     <!-- TABELA -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
 
 
         <!-- FILTROS -->
-        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
 
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
-                <h2 class="font-bold text-slate-900 text-base tracking-tight">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>
+                <h2 class="font-bold text-slate-900 dark:text-white text-base tracking-tight">
                     Detalhamento das Parcelas
                 </h2>
             </div>
@@ -148,7 +187,7 @@
 
             <div class="flex flex-wrap items-center gap-2 text-xs">
 
-                <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] mr-1">
+                <span class="text-slate-400 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px] mr-1">
                     Filtrar:
                 </span>
 
@@ -156,7 +195,7 @@
                 <!-- TODAS -->
                 <button type="button"
                         onclick="filtrarParcelas('TODAS', this)"
-                        class="filtro-btn px-3.5 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 transition duration-150">
+                        class="filtro-btn px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800/60 transition duration-150">
 
                     Todas
 
@@ -166,7 +205,7 @@
                 <!-- PENDENTES -->
                 <button type="button"
                         onclick="filtrarParcelas('PENDENTE', this)"
-                        class="filtro-btn px-3.5 py-2 rounded-xl bg-white text-slate-600 hover:bg-slate-100 font-medium border border-slate-200 transition duration-150">
+                        class="filtro-btn px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium border border-slate-200 dark:border-slate-700 transition duration-150">
 
                     Pendentes
 
@@ -176,7 +215,7 @@
                 <!-- PAGAS -->
                 <button type="button"
                         onclick="filtrarParcelas('PAGA', this)"
-                        class="filtro-btn px-3.5 py-2 rounded-xl bg-white text-slate-600 hover:bg-slate-100 font-medium border border-slate-200 transition duration-150">
+                        class="filtro-btn px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium border border-slate-200 dark:border-slate-700 transition duration-150">
 
                     Pagas
 
@@ -186,7 +225,7 @@
                 <!-- ATRASADAS -->
                 <button type="button"
                         onclick="filtrarParcelas('ATRASADA', this)"
-                        class="filtro-btn px-3.5 py-2 rounded-xl bg-white text-slate-600 hover:bg-slate-100 font-medium border border-slate-200 transition duration-150">
+                        class="filtro-btn px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium border border-slate-200 dark:border-slate-700 transition duration-150">
 
                     Atrasadas
 
@@ -196,7 +235,7 @@
                 <!-- EM ABERTO -->
                 <button type="button"
                         onclick="filtrarParcelas('EM_ABERTO', this)"
-                        class="filtro-btn px-3.5 py-2 rounded-xl bg-white text-slate-600 hover:bg-slate-100 font-medium border border-slate-200 transition duration-150">
+                        class="filtro-btn px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium border border-slate-200 dark:border-slate-700 transition duration-150">
 
                     Em aberto
 
@@ -214,7 +253,7 @@
 
                 <thead>
 
-                    <tr class="bg-slate-50/50 text-slate-400 text-xs uppercase font-bold tracking-wider border-b border-slate-100">
+                    <tr class="bg-slate-50/50 dark:bg-slate-800/40 text-slate-400 dark:text-slate-400 text-xs uppercase font-bold tracking-wider border-b border-slate-100 dark:border-slate-800">
 
                         <th class="py-3.5 px-5">
                             Despesa
@@ -246,16 +285,17 @@
 
 
                 <tbody id="tabelaParcelas"
-                       class="divide-y divide-slate-100 text-sm">
+                       class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
 
 
                     <tr th:each="p : ${paginaParcelas.content}"
-                        class="parcela-row hover:bg-slate-50/80 transition duration-150"
+                        th:id="'parcela-row-' + ${p.id}"
+                        class="parcela-row hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition duration-150"
                         th:attr="data-status=${p.statusParcela.name()}">
 
 
                         <!-- DESPESA -->
-                        <td class="py-4 px-5 font-semibold text-slate-800"
+                        <td class="py-4 px-5 font-semibold text-slate-800 dark:text-slate-200"
                             th:text="${p.despesa.descricao}">
 
                             Compra Mercado
@@ -266,7 +306,7 @@
                         <!-- PARCELA -->
                         <td class="py-4 px-5 text-center">
 
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200/60"
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700"
                                   th:text="${p.qtdParcela}">
 
                                 1
@@ -277,7 +317,7 @@
 
 
                         <!-- VENCIMENTO -->
-                        <td class="py-4 px-5 text-slate-500 font-mono text-xs font-medium"
+                        <td class="py-4 px-5 text-slate-500 dark:text-slate-400 font-mono text-xs font-medium"
                             th:text="${#temporals.format(p.dataVencimento, 'dd/MM/yyyy')}">
 
                             10/05/2026
@@ -286,7 +326,7 @@
 
 
                         <!-- VALOR -->
-                        <td class="py-4 px-5 font-extrabold text-slate-900"
+                        <td class="py-4 px-5 font-extrabold text-slate-900 dark:text-white"
                             th:text="${'R$ ' + #numbers.formatDecimal(p.valorParcela, 1, 2)}">
 
                             R$ 100,00
@@ -295,17 +335,17 @@
 
 
                         <!-- STATUS -->
-                        <td class="py-4 px-5">
+                        <td class="py-4 px-5 status-celula">
 
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                            <span class="status-badge inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
                                   th:classappend="${p.statusParcela.name() == 'PAGA'
-                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40'
                                       : p.statusParcela.name() == 'ATRASADA'
-                                      ? 'bg-red-50 text-red-700 border border-red-200'
-                                      : 'bg-amber-50 text-amber-700 border border-amber-200'}">
+                                      ? 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800/40'
+                                      : 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40'}">
 
 
-                                <span class="w-1.5 h-1.5 rounded-full"
+                                <span class="status-dot w-1.5 h-1.5 rounded-full"
                                       th:classappend="${p.statusParcela.name() == 'PAGA'
                                           ? 'bg-emerald-500'
                                           : p.statusParcela.name() == 'ATRASADA'
@@ -314,7 +354,7 @@
                                 </span>
 
 
-                                <span th:text="${p.statusParcela}">
+                                <span class="status-texto" th:text="${p.statusParcela}">
                                     PENDENTE
                                 </span>
 
@@ -324,21 +364,25 @@
 
 
                         <!-- AÇÃO -->
-                        <td class="py-4 px-5 text-right">
+                        <td class="py-4 px-5 text-right acao-celula">
 
-                            <form th:action="@{/parcela/{id}/pagar(id=${p.id})}"
-                                  method="POST"
-                                  class="inline">
+                            <!-- Se está PAGA: botão Desfazer -->
+                            <button th:if="${p.statusParcela.name() == 'PAGA'}"
+                                    type="button"
+                                    th:attr="data-id=${p.id}"
+                                    onclick="executarAcaoParcela(this, 'desfazer')"
+                                    class="btn-parcela inline-flex items-center gap-1 text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-slate-300 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 rounded-xl shadow-sm transition duration-150">
+                                <span>↩</span> Desfazer
+                            </button>
 
-                                <button type="submit"
-                                        th:disabled="${p.statusParcela.name() == 'PAGA'}"
-                                        class="inline-flex items-center gap-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition duration-150 disabled:opacity-40 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed">
-
-                                    Baixar
-
-                                </button>
-
-                            </form>
+                            <!-- Se NÃO está PAGA: botão Baixar -->
+                            <button th:unless="${p.statusParcela.name() == 'PAGA'}"
+                                    type="button"
+                                    th:attr="data-id=${p.id}"
+                                    onclick="executarAcaoParcela(this, 'pagar')"
+                                    class="btn-parcela inline-flex items-center gap-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition duration-150">
+                                <span>✓</span> Baixar
+                            </button>
 
                         </td>
 
@@ -352,7 +396,7 @@
 
 
         <!-- PAGINAÇÃO -->
-        <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center text-xs text-slate-500 font-medium">
+        <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400 font-medium">
 
             <span th:text="${'Página ' + (paginaParcelas.number + 1)
                             + ' de ' + paginaParcelas.totalPages}">
@@ -368,7 +412,7 @@
                 <a th:if="${paginaParcelas.hasPrevious()}"
                    th:href="@{/parcela(page=${paginaParcelas.number - 1},
                                       size=${paginaParcelas.size})}"
-                   class="px-3 py-1.5 border border-slate-200 rounded-xl bg-white hover:bg-slate-100 font-semibold text-slate-700 transition duration-150">
+                   class="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition duration-150">
 
                     Anterior
 
@@ -376,7 +420,7 @@
 
 
                 <span th:unless="${paginaParcelas.hasPrevious()}"
-                      class="px-3 py-1.5 border border-slate-100 rounded-xl bg-slate-100 text-slate-400 font-semibold cursor-not-allowed">
+                      class="px-3 py-1.5 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-600 font-semibold cursor-not-allowed">
 
                     Anterior
 
@@ -387,7 +431,7 @@
                 <a th:if="${paginaParcelas.hasNext()}"
                    th:href="@{/parcela(page=${paginaParcelas.number + 1},
                                       size=${paginaParcelas.size})}"
-                   class="px-3 py-1.5 border border-slate-200 rounded-xl bg-white hover:bg-slate-100 font-semibold text-slate-700 transition duration-150">
+                   class="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition duration-150">
 
                     Próxima
 
@@ -395,7 +439,7 @@
 
 
                 <span th:unless="${paginaParcelas.hasNext()}"
-                      class="px-3 py-1.5 border border-slate-100 rounded-xl bg-slate-100 text-slate-400 font-semibold cursor-not-allowed">
+                      class="px-3 py-1.5 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-600 font-semibold cursor-not-allowed">
 
                     Próxima
 
@@ -412,65 +456,163 @@
 
 <script>
 
-function filtrarParcelas(status, botao) {
+let filtroAtual = 'TODAS';
 
+function formatarMoeda(valor) {
+    if (valor == null || isNaN(valor)) return 'R$ 0,00';
+    return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function filtrarParcelas(status, botao) {
+    filtroAtual = status;
     const parcelas = document.querySelectorAll('.parcela-row');
     const botoes = document.querySelectorAll('.filtro-btn');
 
-
     botoes.forEach(function(btn) {
-
-        btn.classList.remove(
-            'bg-indigo-50',
-            'text-indigo-700',
-            'border-indigo-200',
-            'font-bold'
-        );
-
-        btn.classList.add(
-            'bg-white',
-            'text-slate-600',
-            'border-slate-200',
-            'font-medium'
-        );
-
+        btn.classList.remove('bg-indigo-50', 'text-indigo-700', 'border-indigo-200', 'dark:bg-indigo-950/50', 'dark:text-indigo-300', 'dark:border-indigo-800/60', 'font-bold');
+        btn.classList.add('bg-white', 'text-slate-600', 'border-slate-200', 'dark:bg-slate-800', 'dark:text-slate-300', 'dark:border-slate-700', 'font-medium');
     });
 
+    if (botao) {
+        botao.classList.remove('bg-white', 'text-slate-600', 'border-slate-200', 'dark:bg-slate-800', 'dark:text-slate-300', 'dark:border-slate-700', 'font-medium');
+        botao.classList.add('bg-indigo-50', 'text-indigo-700', 'border-indigo-200', 'dark:bg-indigo-950/50', 'dark:text-indigo-300', 'dark:border-indigo-800/60', 'font-bold');
+    }
 
-    botao.classList.remove(
-        'bg-white',
-        'text-slate-600',
-        'border-slate-200',
-        'font-medium'
-    );
+    aplicarFiltroNasLinhas();
+}
 
-    botao.classList.add(
-        'bg-indigo-50',
-        'text-indigo-700',
-        'border-indigo-200',
-        'font-bold'
-    );
-
-
+function aplicarFiltroNasLinhas() {
+    const parcelas = document.querySelectorAll('.parcela-row');
     parcelas.forEach(function(parcela) {
-
-        const statusParcela =
-            parcela.getAttribute('data-status');
-
-
-        if (status === 'TODAS' ||
-            statusParcela === status) {
-
+        const statusParcela = parcela.getAttribute('data-status');
+        if (filtroAtual === 'TODAS' || statusParcela === filtroAtual) {
             parcela.style.display = '';
-
         } else {
-
             parcela.style.display = 'none';
+        }
+    });
+}
 
+async function executarAcaoParcela(botao, acao) {
+    const id = botao.getAttribute('data-id');
+    if (!id) return;
+
+    botao.disabled = true;
+    const textoOriginal = botao.innerHTML;
+    botao.innerHTML = '<span class="inline-block animate-spin">⏳</span> Processando...';
+
+    try {
+        const response = await fetch('/parcela/' + id + '/' + acao, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao processar requisição');
         }
 
-    });
+        const data = await response.json();
 
+        // 1. Atualiza os cards de resumo no topo
+        const totalPendenteEl = document.getElementById('totalPendenteValor');
+        const totalPagoEl = document.getElementById('totalPagoValor');
+        const percentualBadgeEl = document.getElementById('percentualPagoBadge');
+        const percentualBarraEl = document.getElementById('percentualPagoBarra');
+
+        if (totalPendenteEl && data.totalPendente !== undefined) {
+            totalPendenteEl.textContent = formatarMoeda(data.totalPendente);
+        }
+        if (totalPagoEl && data.totalPago !== undefined) {
+            totalPagoEl.textContent = formatarMoeda(data.totalPago);
+        }
+        if (percentualBadgeEl && data.percentualPago !== undefined) {
+            const perc = Number(data.percentualPago).toFixed(2) + '%';
+            percentualBadgeEl.textContent = perc;
+        }
+        if (percentualBarraEl && data.percentualPago !== undefined) {
+            percentualBarraEl.style.width = Number(data.percentualPago) + '%';
+        }
+
+        // 2. Atualiza a linha da tabela
+        const row = document.getElementById('parcela-row-' + id);
+        if (row) {
+            row.setAttribute('data-status', data.status);
+
+            const statusCelula = row.querySelector('.status-celula');
+            const acaoCelula = row.querySelector('.acao-celula');
+
+            if (data.status === 'PAGA') {
+                if (statusCelula) {
+                    statusCelula.innerHTML = `
+                        <span class="status-badge inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40">
+                            <span class="status-dot w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span class="status-texto">Paga</span>
+                        </span>
+                    `;
+                }
+                if (acaoCelula) {
+                    acaoCelula.innerHTML = `
+                        <button type="button"
+                                data-id="${id}"
+                                onclick="executarAcaoParcela(this, 'desfazer')"
+                                class="btn-parcela inline-flex items-center gap-1 text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-slate-300 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 rounded-xl shadow-sm transition duration-150">
+                            <span>↩</span> Desfazer
+                        </button>
+                    `;
+                }
+            } else if (data.status === 'ATRASADA') {
+                if (statusCelula) {
+                    statusCelula.innerHTML = `
+                        <span class="status-badge inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800/40">
+                            <span class="status-dot w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            <span class="status-texto">Atrasada</span>
+                        </span>
+                    `;
+                }
+                if (acaoCelula) {
+                    acaoCelula.innerHTML = `
+                        <button type="button"
+                                data-id="${id}"
+                                onclick="executarAcaoParcela(this, 'pagar')"
+                                class="btn-parcela inline-flex items-center gap-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition duration-150">
+                            <span>✓</span> Baixar
+                        </button>
+                    `;
+                }
+            } else {
+                if (statusCelula) {
+                    statusCelula.innerHTML = `
+                        <span class="status-badge inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40">
+                            <span class="status-dot w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            <span class="status-texto">Pendente</span>
+                        </span>
+                    `;
+                }
+                if (acaoCelula) {
+                    acaoCelula.innerHTML = `
+                        <button type="button"
+                                data-id="${id}"
+                                onclick="executarAcaoParcela(this, 'pagar')"
+                                class="btn-parcela inline-flex items-center gap-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition duration-150">
+                            <span>✓</span> Baixar
+                        </button>
+                    `;
+                }
+            }
+
+            // 3. Reaplica o filtro atual sem perder estado
+            aplicarFiltroNasLinhas();
+        }
+
+    } catch (err) {
+        console.error('Erro ao alterar status da parcela:', err);
+        alert('Não foi possível alterar o status da parcela. Tente novamente.');
+        botao.disabled = false;
+        botao.innerHTML = textoOriginal;
+    }
 }
 
 </script>

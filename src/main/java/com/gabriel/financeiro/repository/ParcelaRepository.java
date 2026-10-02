@@ -38,5 +38,31 @@ public interface ParcelaRepository extends JpaRepository<Parcela, UUID> {
     """)
     BigDecimal somarParcelasTerceiros(StatusParcela status);
 
+    @Query("""
+        SELECT COALESCE(SUM(p.valorParcela), 0)
+        FROM Parcela p
+        WHERE p.fatura.mesReferencia = :mes
+        AND p.fatura.anoReferencia = :ano
+        AND p.despesa.pessoa IS NULL
+    """)
+    BigDecimal somarParcelasPropriasPorMesEAno(Integer mes, Integer ano);
+
+    @Query("""
+        SELECT COALESCE(SUM(p.valorParcela), 0)
+        FROM Parcela p
+        WHERE p.fatura.mesReferencia = :mes
+        AND p.fatura.anoReferencia = :ano
+        AND p.despesa.pessoa IS NOT NULL
+    """)
+    BigDecimal somarParcelasTerceirosPorMesEAno(Integer mes, Integer ano);
+
+    @Query("""
+        SELECT COALESCE(SUM(p.valorParcela), 0)
+        FROM Parcela p
+        WHERE p.fatura.mesReferencia = :mes
+        AND p.fatura.anoReferencia = :ano
+    """)
+    BigDecimal somarTodasParcelasPorMesEAno(Integer mes, Integer ano);
+
     List<Parcela> findByDespesa(Despesa despesa);
 }

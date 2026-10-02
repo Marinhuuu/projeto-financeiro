@@ -10,6 +10,27 @@
     <title>Gerenciamento de Pessoas</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
 
@@ -31,21 +52,21 @@
 </head>
 
 
-<body class="bg-slate-50 text-slate-800 min-h-screen antialiased selection:bg-rose-500 selection:text-white p-4 sm:p-8">
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen antialiased selection:bg-rose-500 selection:text-white p-4 sm:p-8 transition-colors duration-200">
 
 
     <!-- CADASTRO -->
 
-    <div class="max-w-3xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 mb-8">
+    <div class="max-w-3xl mx-auto bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 mb-8 transition-colors">
 
 
         <!-- CABEÇALHO -->
 
-        <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+        <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
 
             <div class="flex items-center gap-3">
 
-                <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl border border-rose-100">
+                <div class="p-2.5 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-100 dark:border-rose-800/40">
 
                     <svg class="w-5 h-5"
                          fill="none"
@@ -65,7 +86,7 @@
 
                 <div>
 
-                    <h2 class="text-xl font-bold text-slate-900 tracking-tight">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
 
                         Pessoas
 
@@ -84,7 +105,7 @@
 
             <a th:href="@{/home}"
 
-               class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl transition-all duration-150">
+               class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-slate-300 text-slate-700 dark:text-slate-300 text-xs font-bold px-3.5 py-2 rounded-xl transition-all duration-150">
 
                 <span>←</span>
 
@@ -105,7 +126,7 @@
 
             <div>
 
-                <label class="block text-xs uppercase font-bold text-slate-500 mb-1.5 tracking-wider">
+                <label class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
 
                     Nome
 
@@ -117,7 +138,7 @@
                        required
                        placeholder="Ex: Maria, João, Pedro..."
 
-                       class="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition duration-150 placeholder:text-slate-400">
+                       class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white dark:focus:bg-slate-700 transition duration-150 placeholder:text-slate-400">
 
             </div>
 
@@ -146,14 +167,14 @@
 
     <!-- LISTAGEM -->
 
-    <div class="max-w-3xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100">
+    <div class="max-w-3xl mx-auto bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
 
 
-        <div class="flex items-center gap-2.5 mb-6 pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-2.5 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
 
             <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
 
-            <h2 class="text-lg font-bold text-slate-900 tracking-tight">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
 
                 Pessoas Cadastradas
 
@@ -169,7 +190,7 @@
 
                 <thead>
 
-                    <tr class="border-b border-slate-100 bg-slate-50/50">
+                    <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30">
 
                         <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">
 
@@ -188,17 +209,17 @@
                 </thead>
 
 
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
 
 
                     <tr th:each="pessoa : ${paginaPessoa.content}"
 
-                        class="hover:bg-slate-50/80 transition duration-150">
+                        class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition duration-150">
 
 
                         <td class="p-3">
 
-                            <span class="text-sm font-semibold text-slate-800"
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-100"
 
                                   th:text="${pessoa.nome}">
 
@@ -226,7 +247,7 @@
 
                                         onclick="return confirm('Deseja realmente excluir esta pessoa?')"
 
-                                        class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold px-3 py-2 rounded-lg border border-rose-100 transition">
+                                        class="inline-flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-300 text-xs font-bold px-3 py-2 rounded-lg border border-rose-100 dark:border-rose-800/40 transition">
 
                                     Excluir
 
@@ -252,7 +273,7 @@
 
                             </p>
 
-                            <p class="text-xs text-slate-300 mt-1">
+                            <p class="text-xs text-slate-300 dark:text-slate-500 mt-1">
 
                                 Cadastre alguém acima para começar.
 

@@ -58,14 +58,33 @@ public class ParcelaService {
 	            .multiply(BigDecimal.valueOf(100));
 	}
 	
-	public void pagarParcela(UUID id) {
+	public Parcela pagarParcela(UUID id) {
 
 	    Parcela parcela = parcelaRepo.findById(id)
 	            .orElseThrow(() -> new RuntimeException("Parcela não encontrada"));
 
 	    parcela.setStatusParcela(StatusParcela.PAGA);
 
-	    parcelaRepo.save(parcela);
+	    return parcelaRepo.save(parcela);
+	}
+
+	public Parcela desfazerPagamento(UUID id) {
+
+	    Parcela parcela = parcelaRepo.findById(id)
+	            .orElseThrow(() -> new RuntimeException("Parcela não encontrada"));
+
+	    if (parcela.getDataVencimento() != null && parcela.getDataVencimento().isBefore(LocalDate.now())) {
+	        parcela.setStatusParcela(StatusParcela.ATRASADA);
+	    } else {
+	        parcela.setStatusParcela(StatusParcela.PENDENTE);
+	    }
+
+	    return parcelaRepo.save(parcela);
+	}
+
+	public Parcela buscarPorId(UUID id) {
+	    return parcelaRepo.findById(id)
+	            .orElseThrow(() -> new RuntimeException("Parcela não encontrada"));
 	}
 	
 	public void atualizarParcelasAtrasadas() {

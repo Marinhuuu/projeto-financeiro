@@ -48,11 +48,31 @@ public class HomeController {
 
 		CicloFinanceiro ciclo = cicloFinanceiroService.getCicloAtual();
 
+		LocalDate hoje = LocalDate.now();
+
+		// Dia do fechamento da fatura
+		int diaFechamento = 5;
+
+		// Próxima data de fechamento
+		LocalDate dataReferencia;
+
+		if (hoje.getDayOfMonth() >= diaFechamento) {
+			dataReferencia = LocalDate.of(hoje.getYear(), hoje.getMonth(), diaFechamento).plusMonths(1);
+		} else {
+			dataReferencia = LocalDate.of(hoje.getYear(), hoje.getMonth(), diaFechamento);
+		}
+
+		Integer mesAtual = dataReferencia.getMonthValue();
+		Integer anoAtual = dataReferencia.getYear();
+
+		LocalDate inicioMes = LocalDate.of(anoAtual, mesAtual, 1);
+		LocalDate fimMes = inicioMes.withDayOfMonth(inicioMes.lengthOfMonth());
+
 		// =========================================================
-		// RECEITAS
+		// RECEITAS DO MÊS
 		// =========================================================
 
-		BigDecimal totalReceitas = receitaRepo.somarReceitas();
+		BigDecimal totalReceitas = receitaRepo.somarReceitasPorPeriodo(inicioMes, fimMes);
 
 		if (totalReceitas == null) {
 			totalReceitas = BigDecimal.ZERO;
@@ -81,18 +101,13 @@ public class HomeController {
 		long quantidadeDespesasTerceiros = despesaRepo.contarDespesasDeTerceiros();
 
 		// =========================================================
-		// MINHAS DESPESAS
-		//
-		// Pessoa == null = despesa própria
+		// MINHAS DESPESAS GERAIS (Pessoa == null)
 		// =========================================================
 
 		BigDecimal totalDespesasProprias = totalDespesas.subtract(totalDespesasTerceiros);
 
 		// =========================================================
-		// PARCELAS
-		//
-		// Pessoa == null -> minhas parcelas
-		// Pessoa != null -> parcelas de terceiros
+		// PARCELAS (PENDENTES GERAIS)
 		// =========================================================
 
 		List<Parcela> parcelas = parcelaRepo.findAll();
@@ -114,25 +129,16 @@ public class HomeController {
 				continue;
 			}
 
-			// =====================================================
 			// PARCELA PRÓPRIA
-			// =====================================================
-
 			if (parcela.getDespesa() != null && parcela.getDespesa().getPessoa() == null) {
 
 				totalParcelasProprias = totalParcelasProprias.add(parcela.getValorParcela());
-
 				quantidadeParcelasProprias++;
 			}
-
-			// =====================================================
 			// PARCELA DE TERCEIRO
-			// =====================================================
-
 			else if (parcela.getDespesa() != null && parcela.getDespesa().getPessoa() != null) {
 
 				totalParcelasTerceiros = totalParcelasTerceiros.add(parcela.getValorParcela());
-
 				quantidadeParcelasTerceiros++;
 			}
 		}
@@ -160,41 +166,37 @@ public class HomeController {
 		// FATURAS DO MÊS
 		// =========================================================
 
-		LocalDate hoje = LocalDate.now();
-
-		// Dia do fechamento da fatura
-		int diaFechamento = 5;
-
-		// Próxima data de fechamento
-		LocalDate dataReferencia;
-
-		if (hoje.getDayOfMonth() >= diaFechamento) {
-			dataReferencia = LocalDate.of(hoje.getYear(), hoje.getMonth(), diaFechamento).plusMonths(1);
-		} else {
-			dataReferencia = LocalDate.of(hoje.getYear(), hoje.getMonth(), diaFechamento);
-		}
-
-		Integer mesAtual = dataReferencia.getMonthValue();
-		Integer anoAtual = dataReferencia.getYear();
-
 		List<FaturaCartao> faturas = faturaRepo.findByMesReferenciaAndAnoReferencia(mesAtual, anoAtual);
 
-		// =========================================================
 		// TOTAL DAS FATURAS DO MÊS
-		// =========================================================
 		BigDecimal somaFaturaMes = faturas.stream().map(FaturaCartao::getValorTotal).filter(valor -> valor != null)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		// =========================================================
-		// SALDO DO MÊS
+		// CÁLCULO DO SALDO ESTIMADO DO MÊS
 		//
-		// Receitas - Despesas
-		//
-		// A fatura NÃO é descontada novamente aqui porque a despesa
-		// do cartão já pertence ao total de despesas.
+		// Considera somente os gastos que pertencem ao próprio usuário (pessoa == null).
+		// Para despesas parceladas no cartão, desconta apenas a parcela do mês em questão.
+		// Despesas de terceiros NÃO impactam o saldo pessoal do usuário.
 		// =========================================================
 
-		BigDecimal saldoMes = totalReceitas.subtract(totalDespesas);
+		// 1. Despesas próprias do mês que não usam cartão (à vista, pix, dinheiro, débito)
+		BigDecimal despesasPropriasNaoCartaoMes = despesaRepo.somarDespesasPessoaisNaoCartaoPorPeriodo(inicioMes, fimMes);
+		if (despesasPropriasNaoCartaoMes == null) {
+			despesasPropriasNaoCartaoMes = BigDecimal.ZERO;
+		}
+
+		// 2. Parcelas do cartão pertencentes ao próprio usuário na fatura deste mês
+		BigDecimal parcelasPropriasCartaoMes = parcelaRepo.somarParcelasPropriasPorMesEAno(mesAtual, anoAtual);
+		if (parcelasPropriasCartaoMes == null) {
+			parcelasPropriasCartaoMes = BigDecimal.ZERO;
+		}
+
+		// Total de saídas do próprio usuário no mês
+		BigDecimal totalGastosPropriosMes = despesasPropriasNaoCartaoMes.add(parcelasPropriasCartaoMes);
+
+		// Saldo estimado = Receitas do mês - Gastos próprios do mês
+		BigDecimal saldoMes = totalReceitas.subtract(totalGastosPropriosMes);
 
 		// =========================================================
 		// QUANTIDADE DE FATURAS
@@ -234,6 +236,8 @@ public class HomeController {
 		model.addAttribute("quantidadeParcelasTerceiros", quantidadeParcelasTerceiros);
 
 		model.addAttribute("totalFaturaMes", somaFaturaMes);
+
+		model.addAttribute("totalGastosPropriosMes", totalGastosPropriosMes);
 
 		model.addAttribute("totalFaturasAbertas", totalFaturasAbertas);
 

@@ -1,6 +1,7 @@
 package com.gabriel.financeiro.repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,6 +35,31 @@ public interface DespesaRepository extends JpaRepository<Despesa, UUID> {
         WHERE d.pessoa IS NULL
     """)
     BigDecimal somarDespesasPessoais();
+
+    @Query("""
+        SELECT COALESCE(SUM(d.valorTotal), 0)
+        FROM Despesa d
+        WHERE d.pessoa IS NULL
+          AND d.cartao IS NULL
+          AND d.dataCompra BETWEEN :inicio AND :fim
+    """)
+    BigDecimal somarDespesasPessoaisNaoCartaoPorPeriodo(LocalDate inicio, LocalDate fim);
+
+    @Query("""
+        SELECT COALESCE(SUM(d.valorTotal), 0)
+        FROM Despesa d
+        WHERE d.pessoa IS NULL
+          AND d.dataCompra BETWEEN :inicio AND :fim
+    """)
+    BigDecimal somarDespesasPessoaisPorPeriodo(LocalDate inicio, LocalDate fim);
+
+    @Query("""
+        SELECT COALESCE(SUM(d.valorTotal), 0)
+        FROM Despesa d
+        WHERE d.pessoa IS NOT NULL
+          AND d.dataCompra BETWEEN :inicio AND :fim
+    """)
+    BigDecimal somarDespesasTerceirosPorPeriodo(LocalDate inicio, LocalDate fim);
 
 
     // =========================================================

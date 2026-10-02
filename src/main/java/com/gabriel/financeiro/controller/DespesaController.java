@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.entities.Despesa;
+import com.gabriel.financeiro.entities.FormaPagamento;
 import com.gabriel.financeiro.service.CartaoService;
 import com.gabriel.financeiro.service.CategoriaService;
 import com.gabriel.financeiro.service.DespesaService;
+import com.gabriel.financeiro.service.FormaPagamentoService;
 import com.gabriel.financeiro.service.PessoaService;
 
 @Controller
@@ -30,14 +32,16 @@ public class DespesaController {
 	private final CategoriaService categoriaServ;
 	private final CartaoService cartaoServ;
 	private final PessoaService pessoaServ;
+	private final FormaPagamentoService formaPagamentoServ;
 
 	public DespesaController(DespesaService despesaServ, CategoriaService categoriaServ, CartaoService cartaoServ,
-			PessoaService pessoaServ) {
+			PessoaService pessoaServ, FormaPagamentoService formaPagamentoServ) {
 
 		this.despesaServ = despesaServ;
 		this.categoriaServ = categoriaServ;
 		this.cartaoServ = cartaoServ;
 		this.pessoaServ = pessoaServ;
+		this.formaPagamentoServ = formaPagamentoServ;
 	}
 
 	// =========================================================
@@ -58,9 +62,17 @@ public class DespesaController {
 
 		despesa.setCartao(new CartaoCredito());
 
+		despesa.setFormaPagamento(new FormaPagamento());
+
 		model.addAttribute("despesa", despesa);
 
 		model.addAttribute("paginaDespesa", paginaDespesa);
+
+		// =====================================================
+		// FORMAS DE PAGAMENTO
+		// =====================================================
+
+		model.addAttribute("formasPagamento", formaPagamentoServ.listarTodas());
 
 		// =====================================================
 		// CATEGORIAS

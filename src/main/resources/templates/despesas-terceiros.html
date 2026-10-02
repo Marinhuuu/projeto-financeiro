@@ -2,440 +2,260 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Despesas de Terceiros</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+    </script>
 
-    <link rel="preconnect"
-          href="https://fonts.googleapis.com">
-
-    <link rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-
         body {
             font-family: 'Inter', sans-serif;
         }
-
     </style>
-
 </head>
 
-
-<body class="bg-slate-50 text-slate-800 min-h-screen antialiased p-4 sm:p-8">
-
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen antialiased p-4 sm:p-8 transition-colors duration-200">
 
     <!-- CONTAINER PRINCIPAL -->
-
-    <div class="max-w-6xl mx-auto">
-
+    <div class="max-w-6xl mx-auto space-y-6">
 
         <!-- CABEÇALHO -->
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8 mb-6">
-
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-
                 <div class="flex items-center gap-3">
-
-                    <div class="p-3 bg-amber-50 text-amber-600 rounded-xl border border-amber-100">
-
-                        <svg class="w-6 h-6"
-                             fill="none"
-                             stroke="currentColor"
-                             viewBox="0 0 24 24">
-
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
+                    <div class="p-3 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-800/40">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
                             </path>
-
                         </svg>
-
                     </div>
-
 
                     <div>
-
-                        <h1 class="text-xl font-bold text-slate-900 tracking-tight">
-
+                        <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                             Despesas de Terceiros
-
                         </h1>
-
-                        <p class="text-xs font-medium text-slate-400 mt-1">
-
+                        <p class="text-xs font-medium text-slate-400 dark:text-slate-400 mt-1">
                             Controle dos gastos feitos no seu cartão para outras pessoas
-
                         </p>
-
                     </div>
-
                 </div>
 
-
-                <div class="flex gap-2">
+                <div class="flex items-center gap-2">
+                    <!-- BOTÃO DARK MODE -->
+                    <button type="button"
+                            onclick="toggleDarkMode()"
+                            class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition duration-150 shadow-sm flex items-center justify-center"
+                            title="Alternar Modo Escuro/Claro">
+                        <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <svg class="w-4 h-4 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                    </button>
 
                     <a th:href="@{/despesa}"
-                       class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-xl transition">
-
+                       class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold px-4 py-2.5 rounded-xl transition border border-slate-200/60 dark:border-slate-700">
                         ← Nova Despesa
-
                     </a>
 
                     <a th:href="@{/home}"
-                       class="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">
-
+                       class="inline-flex items-center gap-1.5 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm">
                         Home
-
                     </a>
-
                 </div>
-
             </div>
-
         </div>
 
-
-
         <!-- TABELA -->
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
 
             <!-- TÍTULO -->
-
-            <div class="px-6 py-5 border-b border-slate-100 flex items-center gap-2.5">
-
+            <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-
-                <h2 class="text-lg font-bold text-slate-900">
-
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">
                     Gastos de terceiros
-
                 </h2>
-
             </div>
 
-
-
             <!-- TABELA RESPONSIVA -->
-
             <div class="overflow-x-auto">
-
                 <table class="w-full text-left border-collapse">
 
-
                     <!-- CABEÇALHO -->
-
                     <thead>
-
-                        <tr class="border-b border-slate-100 bg-slate-50/70">
-
-                            <th class="p-4 text-xs uppercase font-bold text-slate-400 tracking-wider">
-
+                        <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40">
+                            <th class="p-4 text-xs uppercase font-bold text-slate-400 dark:text-slate-400 tracking-wider">
                                 Pessoa
-
                             </th>
-
-                            <th class="p-4 text-xs uppercase font-bold text-slate-400 tracking-wider">
-
+                            <th class="p-4 text-xs uppercase font-bold text-slate-400 dark:text-slate-400 tracking-wider">
                                 Compra
-
                             </th>
-
-                            <th class="p-4 text-xs uppercase font-bold text-slate-400 tracking-wider">
-
+                            <th class="p-4 text-xs uppercase font-bold text-slate-400 dark:text-slate-400 tracking-wider">
                                 Valor
-
                             </th>
-
-                            <th class="p-4 text-xs uppercase font-bold text-slate-400 tracking-wider">
-
+                            <th class="p-4 text-xs uppercase font-bold text-slate-400 dark:text-slate-400 tracking-wider">
                                 Parcelas
-
                             </th>
-
-                            <th class="p-4 text-xs uppercase font-bold text-slate-400 tracking-wider">
-
+                            <th class="p-4 text-xs uppercase font-bold text-slate-400 dark:text-slate-400 tracking-wider">
                                 Devolução
-
                             </th>
-
-                            <th class="p-4 text-xs uppercase font-bold text-slate-400 tracking-wider text-right">
-
+                            <th class="p-4 text-xs uppercase font-bold text-slate-400 dark:text-slate-400 tracking-wider text-right">
                                 Ação
-
                             </th>
-
                         </tr>
-
                     </thead>
 
-
-
                     <!-- CORPO -->
-
-                    <tbody class="divide-y divide-slate-100">
-
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
 
                         <!-- SEM DESPESAS -->
-
                         <tr th:if="${#lists.isEmpty(despesasTerceiros)}">
-
-                            <td colspan="6"
-                                class="p-10 text-center">
-
+                            <td colspan="6" class="p-10 text-center">
                                 <div class="flex flex-col items-center">
-
-                                    <div class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-full mb-3">
-
-                                        <span class="text-xl">
-
-                                            ✓
-
-                                        </span>
-
+                                    <div class="w-12 h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-full mb-3">
+                                        <span class="text-xl text-slate-500 dark:text-slate-400">✓</span>
                                     </div>
-
-                                    <p class="text-sm font-bold text-slate-700">
-
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-300">
                                         Nenhuma despesa de terceiro
-
                                     </p>
-
-                                    <p class="text-xs text-slate-400 mt-1">
-
+                                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
                                         Os gastos cadastrados para outras pessoas aparecerão aqui.
-
                                     </p>
-
                                 </div>
-
                             </td>
-
                         </tr>
 
-
-
                         <!-- DESPESAS -->
-
                         <tr th:each="d : ${despesasTerceiros}"
-                            class="hover:bg-slate-50/70 transition duration-150">
-
+                            class="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition duration-150">
 
                             <!-- PESSOA -->
-
                             <td class="p-4">
-
                                 <div class="flex items-center gap-3">
-
-                                    <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
-
+                                    <div class="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/40 flex items-center justify-center font-bold text-sm">
                                         <span th:text="${#strings.substring(d.pessoa.nome, 0, 1).toUpperCase()}">
-
                                             P
-
                                         </span>
-
                                     </div>
-
                                     <div>
-
-                                        <p class="text-sm font-bold text-slate-800"
+                                        <p class="text-sm font-bold text-slate-800 dark:text-slate-200"
                                            th:text="${d.pessoa.nome}">
-
                                             Pessoa
-
                                         </p>
-
                                     </div>
-
                                 </div>
-
                             </td>
-
-
 
                             <!-- COMPRA -->
-
                             <td class="p-4">
-
                                 <div>
-
-                                    <p class="text-sm font-semibold text-slate-800"
+                                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-200"
                                        th:text="${d.descricao}">
-
                                         Compra
-
                                     </p>
-
-                                    <p class="text-xs text-slate-400 mt-1"
+                                    <p class="text-xs text-slate-400 dark:text-slate-400 mt-1"
                                        th:text="${#temporals.format(d.dataCompra, 'dd/MM/yyyy')}">
-
                                         10/05/2026
-
                                     </p>
-
                                 </div>
-
                             </td>
-
-
 
                             <!-- VALOR -->
-
                             <td class="p-4">
-
-                                <span class="text-sm font-extrabold text-rose-600"
+                                <span class="text-sm font-extrabold text-rose-600 dark:text-rose-400"
                                       th:text="${'R$ ' + #numbers.formatDecimal(d.valorTotal, 1, 2)}">
-
                                     R$ 0,00
-
                                 </span>
-
                             </td>
-
-
 
                             <!-- PARCELAS -->
-
                             <td class="p-4">
-
                                 <div th:if="${d.qtdParcelas != null}">
-
-                                    <span class="inline-flex items-center bg-slate-100 text-slate-700 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-bold">
-
-                                        <span th:text="${d.qtdParcelas}">
-
-                                            1
-
-                                        </span>
-
-                                        <span class="ml-1">
-
-                                            x
-
-                                        </span>
-
+                                    <span class="inline-flex items-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold">
+                                        <span th:text="${d.qtdParcelas}">1</span>
+                                        <span class="ml-1">x</span>
                                     </span>
-
                                 </div>
-
                                 <div th:if="${d.qtdParcelas == null}">
-
-                                    <span class="text-xs text-slate-400">
-
+                                    <span class="text-xs text-slate-400 dark:text-slate-500">
                                         À vista
-
                                     </span>
-
                                 </div>
-
                             </td>
-
-
 
                             <!-- DEVOLUÇÃO -->
-
                             <td class="p-4">
-
                                 <span th:if="${d.devolvido}"
-                                      class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg px-2.5 py-1 text-xs font-bold">
-
-                                    <span>✓</span>
-
-                                    Devolvido
-
+                                      class="inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800/40 rounded-lg px-2.5 py-1 text-xs font-bold">
+                                    <span>✓</span> Devolvido
                                 </span>
-
 
                                 <span th:unless="${d.devolvido}"
-                                      class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-100 rounded-lg px-2.5 py-1 text-xs font-bold">
-
-                                    <span>●</span>
-
-                                    Pendente
-
+                                      class="inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-800/40 rounded-lg px-2.5 py-1 text-xs font-bold">
+                                    <span>●</span> Pendente
                                 </span>
-
                             </td>
 
-
-
                             <!-- AÇÃO -->
-
                             <td class="p-4 text-right">
-
-
                                 <!-- AINDA NÃO DEVOLVEU -->
-
                                 <form th:if="${!d.devolvido}"
                                       th:action="@{/despesa/terceiros/devolver}"
                                       method="post">
-
-                                    <input type="hidden"
-                                           name="id"
-                                           th:value="${d.id}">
-
+                                    <input type="hidden" name="id" th:value="${d.id}">
                                     <button type="submit"
-                                            class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition">
-
+                                            class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-sm">
                                         ✓ Marcar como devolvido
-
                                     </button>
-
                                 </form>
 
-
-
                                 <!-- JÁ DEVOLVEU -->
-
                                 <form th:if="${d.devolvido}"
                                       th:action="@{/despesa/terceiros/desfazer-devolucao}"
                                       method="post">
-
-                                    <input type="hidden"
-                                           name="id"
-                                           th:value="${d.id}">
-
+                                    <input type="hidden" name="id" th:value="${d.id}">
                                     <button type="submit"
-                                            class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3.5 py-2 rounded-xl transition">
-
+                                            class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl transition border border-slate-200/60 dark:border-slate-700">
                                         ↩ Desfazer
-
                                     </button>
-
                                 </form>
-
-
                             </td>
 
                         </tr>
-
                     </tbody>
-
                 </table>
-
             </div>
 
         </div>
-
 
     </div>
 
 </body>
-
 </html>

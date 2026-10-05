@@ -35,6 +35,7 @@ O único teste (`FinanceiroApplicationTests.contextLoads`) sobe o contexto compl
 
 ```
 src/main/java/com/gabriel/financeiro/
+  config/       autenticação (interceptor, sessão, BCrypt, advice da navbar)
   controller/   @Controller MVC — retornam nomes de templates ou "redirect:/..."
   service/      regras de negócio
   repository/   interfaces JpaRepository (JPQL com text blocks """ ... """)
@@ -59,7 +60,7 @@ src/main/resources/
 | `FaturaCartao` | uma por cartão + `mesReferencia`/`anoReferencia` (unique); `valorTotal` e `statusFatura` são recalculados a partir das parcelas por `FaturaCartaoService.sincronizar` |
 | `Parcela` | gerada para despesas no cartão; ligada a uma `Despesa` e a uma `FaturaCartao` |
 | `CicloFinanceiro` / `ConfiguracaoFinanceira` | ciclo mensal baseado no `diaFechamento` global |
-| `Usuario` | nome, sobrenome, CPF (único, salvo só com 11 dígitos, validado pelos dígitos verificadores) e `dataNascimento` (`@DateTimeFormat` ISO para o `<input type="date">`) |
+| `Usuario` | nome, sobrenome, CPF (único, salvo só com 11 dígitos, validado pelos dígitos verificadores) e `dataNascimento` (`@DateTimeFormat` ISO para o `<input type="date">`); `senha` guarda **somente o hash BCrypt** (nulo = primeiro acesso pendente) |
 
 Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceiroService`, `ParcelaService`):
 
@@ -68,6 +69,15 @@ Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceir
 - **Compra após o dia de fechamento** do cartão cai na fatura do mês seguinte. Dias de fechamento maiores que o mês são ajustados para o último dia.
 - **Excluir despesa** apaga as parcelas antes da despesa e sincroniza as faturas afetadas (fatura sem parcelas é removida). Qualquer operação que altere parcelas deve chamar `faturaService.sincronizar(fatura)`. Alterar fechamento/vencimento do cartão chama `recalcularFaturasDoCartao`.
 - Totais "meus" vs. "terceiros" em `ParcelaRepository` filtram por `despesa.pessoa IS NULL / IS NOT NULL` e `devolvido = false`.
+
+## Autenticação
+
+- Login por CPF + senha em `/login` (`LoginController`); sessão HTTP com as chaves de `config/SessaoUsuario` (a sessão é recriada no login).
+- `config/AutenticacaoInterceptor` protege todas as rotas, exceto `/login`, `/primeiro-acesso`, `/error` e estáticos (lista em `SegurancaConfig`). Sem sessão: redirect para `/login`; requisição AJAX (`X-Requested-With`) recebe 401 em JSON.
+- **Primeiro acesso (uma única vez por CPF):** CPF sem cadastro ou cadastrado sem senha vai para `/primeiro-acesso`, onde o usuário confirma/preenche nome, sobrenome e nascimento e escolhe a senha. Depois que existe hash, o CPF só entra com senha.
+- Senha: mínimo 8 caracteres com letras e números, máximo 72 bytes (limite do BCrypt). Hash via bean `PasswordEncoder` (`BCryptPasswordEncoder`, dependência `spring-security-crypto`; o Spring Security completo **não** está no projeto).
+- Nunca deixe o formulário bindar `senha` direto na entidade: use `@InitBinder` com `setDisallowedFields("senha")`.
+- O nome do usuário logado chega à navbar pelo model attribute `usuarioLogadoNome` (`UsuarioLogadoAdvice`).
 
 ## Convenções de código
 

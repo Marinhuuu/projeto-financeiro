@@ -7,15 +7,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.SessaoUsuario;
 import com.gabriel.financeiro.entities.Usuario;
 import com.gabriel.financeiro.service.UsuarioService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("/usuario")
@@ -25,6 +30,12 @@ public class UsuarioController {
 
 	public UsuarioController(UsuarioService usuarioServ) {
 		this.usuarioServ = usuarioServ;
+	}
+
+	// O hash da senha só é definido no primeiro acesso, nunca por este formulário
+	@InitBinder("usuario")
+	public void configurarBinder(WebDataBinder binder) {
+		binder.setDisallowedFields("senha");
 	}
 
 	// =========================================================
@@ -92,8 +103,13 @@ public class UsuarioController {
 	// =========================================================
 
 	@PostMapping("/excluir")
-	public String excluirUsuario(@RequestParam UUID id, RedirectAttributes redirectAttributes) {
+	public String excluirUsuario(@RequestParam UUID id, HttpServletRequest request,
+			RedirectAttributes redirectAttributes) {
 		try {
+			if (id.equals(SessaoUsuario.usuarioId(request))) {
+				throw new RuntimeException("você não pode excluir o próprio usuário");
+			}
+
 			usuarioServ.deleteUsuario(id);
 			redirectAttributes.addFlashAttribute("mensagem", "Usuário excluído com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");

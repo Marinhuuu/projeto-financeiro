@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Primeiro Acesso</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+
+</head>
+
+
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen antialiased selection:bg-violet-500 selection:text-white transition-colors duration-200 flex flex-col">
+
+    <!-- BOTÃO DARK MODE -->
+    <div class="flex justify-end p-4">
+        <button type="button"
+                onclick="toggleDarkMode()"
+                class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition duration-150 shadow-sm"
+                title="Alternar Modo Escuro/Claro">
+            <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <main class="flex-1 flex items-start sm:items-center justify-center px-4 pb-16">
+
+        <div class="w-full max-w-xl">
+
+            <!-- CABEÇALHO -->
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Primeiro acesso</h1>
+                <p class="text-sm font-medium text-slate-400 mt-1"
+                   th:text="${cadastroExistente} ? 'Confirme os seus dados e crie a sua senha' : 'Complete o seu cadastro e crie a sua senha'">
+                    Complete o seu cadastro e crie a sua senha
+                </p>
+            </div>
+
+            <!-- MENSAGENS -->
+            <div th:replace="~{fragments/navbar :: flash}"></div>
+
+            <form th:action="@{/primeiro-acesso}"
+                  th:object="${usuario}"
+                  method="POST"
+                  class="mt-4 bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-5 transition-colors">
+
+                <!-- CPF (definido no login, somente leitura) -->
+                <div class="sm:col-span-2">
+                    <span class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
+                        CPF
+                    </span>
+                    <div class="flex items-center justify-between w-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 rounded-xl px-3.5 py-2.5">
+                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 tabular-nums"
+                              th:text="${cpfFormatado}">000.000.000-00</span>
+                        <a th:href="@{/login}"
+                           class="text-xs font-bold text-violet-600 dark:text-violet-400 hover:underline">
+                            Não é você?
+                        </a>
+                    </div>
+                </div>
+
+                <!-- NOME -->
+                <div>
+                    <label for="nome" class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
+                        Nome
+                    </label>
+                    <input type="text"
+                           th:field="*{nome}"
+                           required
+                           maxlength="100"
+                           autocomplete="given-name"
+                           placeholder="Ex: Gabriel"
+                           class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white dark:focus:bg-slate-700 transition duration-150 placeholder:text-slate-400">
+                </div>
+
+                <!-- SOBRENOME -->
+                <div>
+                    <label for="sobrenome" class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
+                        Sobrenome
+                    </label>
+                    <input type="text"
+                           th:field="*{sobrenome}"
+                           required
+                           maxlength="150"
+                           autocomplete="family-name"
+                           placeholder="Ex: Silva Souza"
+                           class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white dark:focus:bg-slate-700 transition duration-150 placeholder:text-slate-400">
+                </div>
+
+                <!-- DATA DE NASCIMENTO -->
+                <div class="sm:col-span-2">
+                    <label for="dataNascimento" class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
+                        Data de Nascimento
+                    </label>
+                    <input type="date"
+                           th:field="*{dataNascimento}"
+                           th:max="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}"
+                           min="1900-01-01"
+                           required
+                           autocomplete="bday"
+                           class="w-full sm:w-1/2 border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white dark:focus:bg-slate-700 transition duration-150">
+                </div>
+
+                <!-- SENHA -->
+                <div>
+                    <label for="senha" class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
+                        Senha
+                    </label>
+                    <input type="password"
+                           id="senha"
+                           name="senha"
+                           required
+                           minlength="8"
+                           maxlength="72"
+                           autocomplete="new-password"
+                           class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white dark:focus:bg-slate-700 transition duration-150">
+                </div>
+
+                <!-- CONFIRMAR SENHA -->
+                <div>
+                    <label for="confirmacaoSenha" class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
+                        Confirmar Senha
+                    </label>
+                    <input type="password"
+                           id="confirmacaoSenha"
+                           name="confirmacaoSenha"
+                           required
+                           minlength="8"
+                           maxlength="72"
+                           autocomplete="new-password"
+                           class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white dark:focus:bg-slate-700 transition duration-150">
+                </div>
+
+                <p class="sm:col-span-2 -mt-2 text-xs text-slate-400">
+                    Mínimo de 8 caracteres, com letras e números. A senha é guardada apenas como hash.
+                </p>
+
+                <div class="sm:col-span-2 flex justify-end pt-1">
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-sm transition-all duration-150">
+                        <span>✓</span>
+                        Concluir cadastro
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </main>
+
+    <script>
+        // Avisa no próprio campo quando a confirmação não confere
+        const senha = document.getElementById('senha');
+        const confirmacao = document.getElementById('confirmacaoSenha');
+
+        function conferirSenhas() {
+            confirmacao.setCustomValidity(
+                confirmacao.value && confirmacao.value !== senha.value ? 'As senhas não conferem' : ''
+            );
+        }
+
+        senha.addEventListener('input', conferirSenhas);
+        confirmacao.addEventListener('input', conferirSenhas);
+    </script>
+
+</body>
+
+</html>

@@ -36,6 +36,11 @@ public class Usuario {
 	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 	private LocalDate dataNascimento;
 
+	// Somente o hash BCrypt da senha (60 caracteres); nunca a senha em texto.
+	// Nulo enquanto o usuário não fez o primeiro acesso.
+	@Column(length = 60)
+	private String senha;
+
 	public Usuario() {
 	}
 
@@ -85,6 +90,18 @@ public class Usuario {
 
 	public void setDataNascimento(LocalDate dataNascimento) {
 		this.dataNascimento = dataNascimento;
+	}
+
+	public String getSenha() {
+		return senha;
+	}
+
+	public void setSenha(String senha) {
+		this.senha = senha;
+	}
+
+	public boolean isPrimeiroAcessoPendente() {
+		return senha == null;
 	}
 
 	public Integer getIdade() {

@@ -56,6 +56,9 @@
 
 	<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
+	<!-- MENSAGENS -->
+	<div th:replace="~{fragments/navbar :: flash}"></div>
+
 
 
 	<!-- ========================================================= -->
@@ -103,7 +106,7 @@
 
 
 						<p class="text-2xl font-black text-white mt-3 tracking-tight"
-						   th:text="${'R$ ' + #numbers.formatDecimal(saldoMes ?: 0, 1, 2)}">
+						   th:text="${'R$ ' + #numbers.formatDecimal(saldoMes ?: 0, 1, 'POINT', 2, 'COMMA')}">
 						    R$ 0,00
 						</p>
 
@@ -158,7 +161,7 @@
 								</span>
 
 								<span class="text-slate-700 dark:text-slate-200"
-									th:text="${'R$ ' + #numbers.formatDecimal(totalReceitas ?: 0, 1, 2)}">
+									th:text="${'R$ ' + #numbers.formatDecimal(totalReceitas ?: 0, 1, 'POINT', 2, 'COMMA')}">
 
 									R$ 0,00
 
@@ -189,7 +192,7 @@
 								</span>
 
 								<span class="text-slate-700 dark:text-slate-200"
-									th:text="${'R$ ' + #numbers.formatDecimal(totalGastosPropriosMes ?: 0, 1, 2)}">
+									th:text="${'R$ ' + #numbers.formatDecimal(totalGastosPropriosMes ?: 0, 1, 'POINT', 2, 'COMMA')}">
 
 									R$ 0,00
 
@@ -248,7 +251,7 @@
 
 
 					<p class="text-2xl font-black text-slate-900 dark:text-white mt-3 tracking-tight"
-						th:text="${'R$ ' + #numbers.formatDecimal(totalReceitas ?: 0, 1, 2)}">
+						th:text="${'R$ ' + #numbers.formatDecimal(totalReceitas ?: 0, 1, 'POINT', 2, 'COMMA')}">
 
 						R$ 0,00
 
@@ -283,7 +286,7 @@
 
 
 					<p class="text-2xl font-black text-slate-900 dark:text-white mt-3 tracking-tight"
-						th:text="${'R$ ' + #numbers.formatDecimal(totalDespesasProprias ?: 0, 1, 2)}">
+						th:text="${'R$ ' + #numbers.formatDecimal(totalDespesasProprias ?: 0, 1, 'POINT', 2, 'COMMA')}">
 
 						R$ 0,00
 
@@ -327,7 +330,7 @@
 
 
 					<p class="text-2xl font-black text-slate-900 dark:text-white mt-3 tracking-tight"
-						th:text="${'R$ ' + #numbers.formatDecimal(totalParcelasProprias ?: 0, 1, 2)}">
+						th:text="${'R$ ' + #numbers.formatDecimal(totalParcelasProprias ?: 0, 1, 'POINT', 2, 'COMMA')}">
 
 						R$ 0,00
 
@@ -374,7 +377,7 @@
 
 
 					<p class="text-2xl font-black text-slate-900 dark:text-white mt-3 tracking-tight"
-						th:text="${'R$ ' + #numbers.formatDecimal(totalFaturaMes ?: 0, 1, 2)}">
+						th:text="${'R$ ' + #numbers.formatDecimal(totalFaturaMes ?: 0, 1, 'POINT', 2, 'COMMA')}">
 
 						R$ 0,00
 
@@ -570,7 +573,7 @@
 							</span>
 
 							<span class="text-xl font-black text-slate-900 dark:text-white tracking-tight"
-								th:text="${'R$ ' + #numbers.formatDecimal(fatura.valorTotal ?: 0, 1, 2)}">
+								th:text="${'R$ ' + #numbers.formatDecimal(fatura.valorTotal ?: 0, 1, 'POINT', 2, 'COMMA')}">
 
 								R$ 0,00
 

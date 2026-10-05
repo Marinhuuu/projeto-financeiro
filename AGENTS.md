@@ -65,6 +65,7 @@ src/main/resources/
 Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceiroService`, `ParcelaService`):
 
 - **Inserir despesa no cartão** gera `qtdParcelas` parcelas; o valor é dividido com `RoundingMode.DOWN` e a última parcela recebe o resto. A 1ª parcela vai para a fatura de `calcularReferencia(cartao, dataCompra)` e a parcela i para essa referência `+ (i-1)` meses (somar meses ao `YearMonth`, nunca à data).
+- **Despesa recorrente** (`recorrente` é `@Transient`, só do formulário): gera `totalOcorrencias` despesas (2–60) de uma vez, uma por mês (`dataCompra.plusMonths(i)` sobre a data original), ligadas por `grupoRecorrencia` + `ocorrencia`. Cada ocorrência tem seu próprio ciclo e, no cartão, suas próprias parcelas. "Excluir esta e as próximas" (`/despesa/excluir-recorrencia`) mantém as anteriores. Receita só tem a flag `recorrente`, sem gerar lançamentos.
 - `CARTAO_VISTA` força 1 parcela. Formas que não são cartão zeram `cartao` e `qtdParcelas` e não geram parcelas.
 - **Compra após o dia de fechamento** do cartão cai na fatura do mês seguinte. Dias de fechamento maiores que o mês são ajustados para o último dia.
 - **Excluir despesa** apaga as parcelas antes da despesa e sincroniza as faturas afetadas (fatura sem parcelas é removida). Qualquer operação que altere parcelas deve chamar `faturaService.sincronizar(fatura)`. Alterar fechamento/vencimento do cartão chama `recalcularFaturasDoCartao`.

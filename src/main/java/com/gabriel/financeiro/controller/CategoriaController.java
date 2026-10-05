@@ -31,14 +31,24 @@ public class CategoriaController {
 	// Tela principal: lista + formulario de criacao
 	@GetMapping
 	public String pageCategoria(@RequestParam(defaultValue = "0") int page,
-	                            @RequestParam(defaultValue = "10") int size,
+	                            @RequestParam(defaultValue = "50") int size,
+	                            @RequestParam(required = false) String tipo,
 	                            Model model) {
 
-		Pageable pageable = PageRequest.of(page, size, Sort.by("nome").ascending());
-		Page<Categoria> paginaCategorias = categoriaServ.listCategoria(pageable);
+		// Filtro da listagem: DESPESA, RECEITA ou todas (qualquer outro valor)
+		String filtro = "DESPESA".equalsIgnoreCase(tipo) || "RECEITA".equalsIgnoreCase(tipo) ? tipo.toUpperCase() : null;
 
-		model.addAttribute("categoria", new Categoria());
+		Pageable pageable = PageRequest.of(page, size, Sort.by("nome").ascending());
+		Page<Categoria> paginaCategorias = categoriaServ.listCategoria(filtro, pageable);
+
+		Categoria nova = new Categoria();
+		nova.setTipo(filtro != null ? filtro : "DESPESA");
+
+		model.addAttribute("categoria", nova);
 		model.addAttribute("categorias", paginaCategorias.getContent());
+		model.addAttribute("filtroTipo", filtro);
+		model.addAttribute("totalDespesa", categoriaServ.contarPorTipo("DESPESA"));
+		model.addAttribute("totalReceita", categoriaServ.contarPorTipo("RECEITA"));
 
 		return "categoria";
 	}

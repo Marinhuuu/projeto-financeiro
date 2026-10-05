@@ -44,6 +44,9 @@
     <!-- NAVBAR -->
     <nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
+    <!-- MENSAGENS -->
+    <div th:replace="~{fragments/navbar :: flash}"></div>
+
     <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <!-- FORMULÁRIO DE CADASTRO -->
         <div class="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
@@ -223,6 +226,36 @@
                        class="w-full sm:w-1/2 border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white dark:focus:bg-slate-900 transition duration-150">
             </div>
 
+            <!-- RECORRÊNCIA -->
+            <div class="sm:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 p-4 space-y-3">
+                <label for="recorrente" class="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox"
+                           id="recorrente"
+                           th:field="*{recorrente}"
+                           class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-rose-600 focus:ring-rose-500">
+                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        Despesa recorrente?
+                        <span class="text-xs font-normal text-slate-400">(repete todo mês)</span>
+                    </span>
+                </label>
+
+                <div id="campoRecorrencia" style="display: none">
+                    <label for="totalOcorrencias" class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
+                        Repetir por quantos meses?
+                    </label>
+                    <input id="totalOcorrencias"
+                           type="number"
+                           min="2"
+                           max="60"
+                           th:field="*{totalOcorrencias}"
+                           placeholder="12"
+                           class="w-full sm:w-1/2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500 transition duration-150">
+                    <p class="text-xs text-slate-400 mt-1.5">
+                        Inclui este mês. Cada mês vira uma despesa própria, no mesmo dia (ou no último dia do mês).
+                    </p>
+                </div>
+            </div>
+
             <!-- BOTÃO CONFIRMAR -->
             <div class="sm:col-span-2 flex justify-end pt-3">
                 <button type="submit"
@@ -395,7 +428,14 @@
 
             if (permiteParcelamento) {
                 campoCartao.style.display = 'block';
-                if (cartaoSelect) cartaoSelect.required = true;
+                if (cartaoSelect) {
+                    cartaoSelect.required = true;
+                    // Só existe um cartão: já deixa selecionado
+                    if (cartaoSelect.selectedIndex < 0 || !cartaoSelect.value) {
+                        const opcoes = Array.from(cartaoSelect.options).filter(o => o.value);
+                        if (opcoes.length === 1) cartaoSelect.value = opcoes[0].value;
+                    }
+                }
 
                 if (isVista) {
                     // Crédito à Vista: oculta campo parcelas, força 1
@@ -414,7 +454,8 @@
             } else {
                 campoCartao.style.display = 'none';
                 campoParcelas.style.display = 'none';
-                if (cartaoSelect) { cartaoSelect.required = false; cartaoSelect.value = ''; }
+                // Não limpa o cartão: o servidor ignora o cartão em formas que não são de cartão
+                if (cartaoSelect) { cartaoSelect.required = false; }
                 if (qtdParcelas) { qtdParcelas.required = false; qtdParcelas.value = ''; }
             }
         }
@@ -433,11 +474,31 @@
             }
         }
 
+        /*
+         * RECORRÊNCIA
+         */
+        const recorrente = document.getElementById('recorrente');
+        const campoRecorrencia = document.getElementById('campoRecorrencia');
+        const totalOcorrencias = document.getElementById('totalOcorrencias');
+
+        function controlarCampoRecorrencia() {
+            if (recorrente.checked) {
+                campoRecorrencia.style.display = 'block';
+                totalOcorrencias.required = true;
+                if (!totalOcorrencias.value) totalOcorrencias.value = '12';
+            } else {
+                campoRecorrencia.style.display = 'none';
+                totalOcorrencias.required = false;
+            }
+        }
+
         formaPagamento.addEventListener('change', controlarCamposCartao);
         tipoGasto.addEventListener('change', controlarCampoPessoa);
+        recorrente.addEventListener('change', controlarCampoRecorrencia);
 
         controlarCamposCartao();
         controlarCampoPessoa();
+        controlarCampoRecorrencia();
     </script>
 
 </body>

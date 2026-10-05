@@ -48,6 +48,13 @@ public interface DespesaRepository extends JpaRepository<Despesa, UUID> {
 
     List<Despesa> findByCartao(CartaoCredito cartao);
 
+    // =========================================================
+    // RECORRÊNCIA
+    // =========================================================
+
+    List<Despesa> findByGrupoRecorrenciaAndOcorrenciaGreaterThanEqualOrderByOcorrenciaAsc(
+            UUID grupoRecorrencia, Integer ocorrencia);
+
     boolean existsByCartao(CartaoCredito cartao);
 
     boolean existsByCategoria(Categoria categoria);

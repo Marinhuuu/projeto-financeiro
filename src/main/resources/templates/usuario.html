@@ -202,6 +202,7 @@
                             <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">Nome</th>
                             <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">CPF</th>
                             <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">Nascimento</th>
+                            <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider">Acesso</th>
                             <th class="p-3 text-xs uppercase font-bold text-slate-400 tracking-wider text-right">Ações</th>
                         </tr>
                     </thead>
@@ -229,6 +230,17 @@
                                       th:text="${'(' + u.idade + ' anos)'}">(25 anos)</span>
                             </td>
 
+                            <td class="p-3 whitespace-nowrap">
+                                <span th:if="${u.primeiroAcessoPendente}"
+                                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
+                                    Aguardando 1º acesso
+                                </span>
+                                <span th:unless="${u.primeiroAcessoPendente}"
+                                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+                                    Ativo
+                                </span>
+                            </td>
+
                             <td class="p-3 text-right whitespace-nowrap">
 
                                 <a th:href="@{/usuario/update/{id}(id=${u.id})}"
@@ -251,7 +263,7 @@
 
                         <!-- NENHUM USUÁRIO -->
                         <tr th:if="${paginaUsuario.content.empty}">
-                            <td colspan="4" class="p-8 text-center">
+                            <td colspan="5" class="p-8 text-center">
                                 <p class="text-sm font-semibold text-slate-400">Nenhum usuário cadastrado.</p>
                                 <p class="text-xs text-slate-300 dark:text-slate-500 mt-1">Cadastre alguém acima para começar.</p>
                             </td>

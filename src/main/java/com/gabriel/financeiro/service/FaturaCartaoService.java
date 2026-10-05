@@ -6,150 +6,253 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.gabriel.financeiro.entities.CartaoCredito;
+import com.gabriel.financeiro.entities.Despesa;
 import com.gabriel.financeiro.entities.FaturaCartao;
+import com.gabriel.financeiro.entities.Parcela;
 import com.gabriel.financeiro.enums.StatusFatura;
+import com.gabriel.financeiro.enums.StatusParcela;
+import com.gabriel.financeiro.repository.DespesaRepository;
 import com.gabriel.financeiro.repository.FaturaCartaoRepository;
+import com.gabriel.financeiro.repository.ParcelaRepository;
 
 @Service
 public class FaturaCartaoService {
 
     private final FaturaCartaoRepository faturaRepo;
+    private final ParcelaRepository parcelaRepo;
+    private final DespesaRepository despesaRepo;
 
-    public FaturaCartaoService(FaturaCartaoRepository faturaRepo) {
+    public FaturaCartaoService(
+            FaturaCartaoRepository faturaRepo,
+            ParcelaRepository parcelaRepo,
+            DespesaRepository despesaRepo) {
+
         this.faturaRepo = faturaRepo;
-      }
-    public List<FaturaCartao> listarFaturas() {
-        return faturaRepo.findAll();
+        this.parcelaRepo = parcelaRepo;
+        this.despesaRepo = despesaRepo;
     }
 
+    // =========================================================
+    // CONSULTAS
+    // =========================================================
+
+    @Transactional
+    public List<FaturaCartao> listarFaturas() {
+
+        List<FaturaCartao> faturas =
+                faturaRepo.findAllByOrderByAnoReferenciaDescMesReferenciaDesc();
+
+        atualizarStatus(faturas);
+
+        return faturas;
+    }
+
+    @Transactional
     public FaturaCartao buscarPorId(UUID id) {
 
-        return faturaRepo.findById(id)
+        FaturaCartao fatura = faturaRepo.findById(id)
                 .orElseThrow(() ->
                     new RuntimeException("Fatura não encontrada"));
+
+        atualizarStatus(List.of(fatura));
+
+        return fatura;
     }
-    
-    public FaturaCartao getOuCriarFatura(
+
+    // =========================================================
+    // REFERÊNCIA DA FATURA
+    // =========================================================
+
+    /*
+     * Mês/ano da fatura em que uma compra feita em "data" entra.
+     * Compra depois do fechamento do mês vai para a fatura seguinte.
+     */
+    public YearMonth calcularReferencia(
             CartaoCredito cartao,
-            LocalDate dataCompra) {
+            LocalDate data) {
 
-        int diaFechamento = cartao.getDiaFechamento();
-
-        /*
-         * Descobre o fechamento do mês da compra.
-         */
-        YearMonth mesDaCompra =
-                YearMonth.from(dataCompra);
-
-        int ultimoDiaDoMes =
-                mesDaCompra.lengthOfMonth();
-
-        int diaFechamentoReal =
-                Math.min(diaFechamento, ultimoDiaDoMes);
+        YearMonth mesDaCompra = YearMonth.from(data);
 
         LocalDate fechamentoDoMes =
-                mesDaCompra.atDay(diaFechamentoReal);
+                ajustarDia(mesDaCompra, cartao.getDiaFechamento());
 
-        /*
-         * Se a compra aconteceu depois do fechamento
-         * deste mês, ela pertence à próxima fatura.
-         *
-         * Se aconteceu antes ou no fechamento,
-         * pertence à fatura deste mês.
-         */
-        YearMonth referencia;
-
-        if (dataCompra.isAfter(fechamentoDoMes)) {
-
-            referencia = mesDaCompra.plusMonths(1);
-
-        } else {
-
-            referencia = mesDaCompra;
+        if (data.isAfter(fechamentoDoMes)) {
+            return mesDaCompra.plusMonths(1);
         }
 
-        Integer mesReferencia =
-                referencia.getMonthValue();
+        return mesDaCompra;
+    }
 
-        Integer anoReferencia =
-                referencia.getYear();
+    @Transactional
+    public FaturaCartao getOuCriarFatura(
+            CartaoCredito cartao,
+            YearMonth referencia) {
 
-        /*
-         * Procura a fatura correspondente.
-         */
         return faturaRepo
                 .findByCartaoAndMesReferenciaAndAnoReferencia(
                         cartao,
-                        mesReferencia,
-                        anoReferencia
+                        referencia.getMonthValue(),
+                        referencia.getYear()
                 )
-                .orElseGet(() ->
-                        criarFatura(
-                                cartao,
-                                mesReferencia,
-                                anoReferencia
-                        )
-                );
+                .orElseGet(() -> criarFatura(cartao, referencia));
     }
 
     private FaturaCartao criarFatura(
             CartaoCredito cartao,
-            Integer mesReferencia,
-            Integer anoReferencia) {
-
-        YearMonth referencia =
-                YearMonth.of(anoReferencia, mesReferencia);
-
-        /*
-         * Data de fechamento da fatura.
-         */
-        int diaFechamento = Math.min(
-                cartao.getDiaFechamento(),
-                referencia.lengthOfMonth()
-        );
-
-        LocalDate dataFechamento =
-                referencia.atDay(diaFechamento);
-
-        /*
-         * Normalmente o vencimento ocorre depois
-         * do fechamento.
-         *
-         * Se o dia de vencimento for menor ou igual
-         * ao dia de fechamento, usamos o mês seguinte.
-         */
-        YearMonth mesVencimento;
-
-        if (cartao.getDiaVencimento() <= cartao.getDiaFechamento()) {
-            mesVencimento = referencia.plusMonths(1);
-        } else {
-            mesVencimento = referencia;
-        }
-
-        int diaVencimento = Math.min(
-                cartao.getDiaVencimento(),
-                mesVencimento.lengthOfMonth()
-        );
-
-        LocalDate dataVencimento =
-                mesVencimento.atDay(diaVencimento);
+            YearMonth referencia) {
 
         FaturaCartao fatura = new FaturaCartao();
 
-        fatura.setMesReferencia(mesReferencia);
-        fatura.setAnoReferencia(anoReferencia);
-        fatura.setDataFechamento(dataFechamento);
-        fatura.setDataVencimento(dataVencimento);
+        fatura.setMesReferencia(referencia.getMonthValue());
+        fatura.setAnoReferencia(referencia.getYear());
         fatura.setValorTotal(java.math.BigDecimal.ZERO);
-        fatura.setStatusFatura(StatusFatura.PENDENTE);
         fatura.setCartao(cartao);
+
+        aplicarDatas(fatura, cartao, referencia);
+
+        fatura.setStatusFatura(calcularStatus(fatura));
 
         return faturaRepo.save(fatura);
     }
-    
-    public FaturaCartao salvar(FaturaCartao fatura) {
-        return faturaRepo.save(fatura);
+
+    /*
+     * Fechamento no mês de referência. Normalmente o vencimento ocorre
+     * depois do fechamento; se o dia de vencimento for menor ou igual
+     * ao de fechamento, o vencimento cai no mês seguinte.
+     */
+    private void aplicarDatas(
+            FaturaCartao fatura,
+            CartaoCredito cartao,
+            YearMonth referencia) {
+
+        YearMonth mesVencimento =
+                cartao.getDiaVencimento() <= cartao.getDiaFechamento()
+                        ? referencia.plusMonths(1)
+                        : referencia;
+
+        fatura.setDataFechamento(ajustarDia(referencia, cartao.getDiaFechamento()));
+        fatura.setDataVencimento(ajustarDia(mesVencimento, cartao.getDiaVencimento()));
+    }
+
+    private LocalDate ajustarDia(YearMonth mes, int dia) {
+        return mes.atDay(Math.min(dia, mes.lengthOfMonth()));
+    }
+
+    // =========================================================
+    // TOTAL E STATUS
+    // =========================================================
+
+    /*
+     * Recalcula valorTotal e status a partir das parcelas.
+     * Fatura que ficou sem parcelas é removida.
+     */
+    @Transactional
+    public void sincronizar(FaturaCartao fatura) {
+
+        if (parcelaRepo.countByFatura(fatura) == 0) {
+            faturaRepo.delete(fatura);
+            return;
+        }
+
+        fatura.setValorTotal(parcelaRepo.somarPorFatura(fatura));
+        fatura.setStatusFatura(calcularStatus(fatura));
+
+        faturaRepo.save(fatura);
+    }
+
+    @Transactional
+    public void atualizarStatus(List<FaturaCartao> faturas) {
+
+        for (FaturaCartao fatura : faturas) {
+
+            StatusFatura status = calcularStatus(fatura);
+
+            if (status != fatura.getStatusFatura()) {
+                fatura.setStatusFatura(status);
+                faturaRepo.save(fatura);
+            }
+        }
+    }
+
+    private StatusFatura calcularStatus(FaturaCartao fatura) {
+
+        if (fatura.getId() != null
+                && parcelaRepo.countByFatura(fatura) > 0
+                && parcelaRepo.countByFaturaAndStatusParcelaNot(fatura, StatusParcela.PAGA) == 0) {
+
+            return StatusFatura.PAGA;
+        }
+
+        LocalDate hoje = LocalDate.now();
+
+        if (fatura.getDataVencimento() != null && hoje.isAfter(fatura.getDataVencimento())) {
+            return StatusFatura.VENCIDA;
+        }
+
+        if (fatura.getDataFechamento() != null && hoje.isAfter(fatura.getDataFechamento())) {
+            return StatusFatura.FECHADA;
+        }
+
+        return StatusFatura.EM_ABERTO;
+    }
+
+    // =========================================================
+    // RECALCULAR FATURAS APÓS ALTERAR O CARTÃO
+    // =========================================================
+
+    /*
+     * Usado quando o dia de fechamento/vencimento do cartão muda:
+     * corrige as datas das faturas existentes, redistribui as parcelas
+     * pela nova regra e recalcula os totais.
+     */
+    @Transactional
+    public void recalcularFaturasDoCartao(CartaoCredito cartao) {
+
+        for (FaturaCartao fatura : faturaRepo.findByCartao(cartao)) {
+
+            aplicarDatas(
+                    fatura,
+                    cartao,
+                    YearMonth.of(fatura.getAnoReferencia(), fatura.getMesReferencia())
+            );
+
+            faturaRepo.save(fatura);
+        }
+
+        LocalDate hoje = LocalDate.now();
+
+        for (Despesa despesa : despesaRepo.findByCartao(cartao)) {
+
+            YearMonth primeiraReferencia =
+                    calcularReferencia(cartao, despesa.getDataCompra());
+
+            for (Parcela parcela : parcelaRepo.findByDespesaOrderByQtdParcelaAsc(despesa)) {
+
+                FaturaCartao fatura = getOuCriarFatura(
+                        cartao,
+                        primeiraReferencia.plusMonths(parcela.getQtdParcela() - 1)
+                );
+
+                parcela.setFatura(fatura);
+                parcela.setDataVencimento(fatura.getDataVencimento());
+
+                if (parcela.getStatusParcela() != StatusParcela.PAGA) {
+                    parcela.setStatusParcela(
+                            fatura.getDataVencimento().isBefore(hoje)
+                                    ? StatusParcela.ATRASADA
+                                    : StatusParcela.PENDENTE
+                    );
+                }
+
+                parcelaRepo.save(parcela);
+            }
+        }
+
+        for (FaturaCartao fatura : faturaRepo.findByCartao(cartao)) {
+            sincronizar(fatura);
+        }
     }
 }

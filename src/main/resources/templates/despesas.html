@@ -42,50 +42,7 @@
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen antialiased selection:bg-rose-500 selection:text-white transition-colors duration-200">
 
     <!-- NAVBAR -->
-    <nav class="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 mb-8 transition-all">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-rose-600 text-white rounded-xl shadow-md shadow-rose-100 dark:shadow-none">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                    </svg>
-                </div>
-                <h1 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-                    Controle Financeiro
-                </h1>
-            </div>
-
-            <div class="flex items-center gap-1.5 sm:gap-2">
-                <a th:href="@{/home}"
-                   class="px-3.5 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-slate-300 rounded-xl transition duration-150">
-                    Início
-                </a>
-
-                <a th:href="@{/receita}"
-                   class="px-3.5 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/50 active:bg-emerald-200 rounded-xl transition duration-150 border border-emerald-100 dark:border-emerald-800/40">
-                    + Receita
-                </a>
-
-                <a th:href="@{/despesa}"
-                   class="px-3.5 py-2 text-sm font-medium bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100/80 dark:hover:bg-rose-900/50 active:bg-rose-200 rounded-xl transition duration-150 border border-rose-100 dark:border-rose-800/40 shadow-sm">
-                    + Despesa
-                </a>
-
-                <!-- BOTÃO DARK MODE -->
-                <button type="button"
-                        onclick="toggleDarkMode()"
-                        class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition duration-150 shadow-sm flex items-center justify-center ml-1"
-                        title="Alternar Modo Escuro/Claro">
-                    <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                    </svg>
-                    <svg class="w-5 h-5 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </nav>
+    <nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
     <!-- CONTEÚDO -->
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-16">

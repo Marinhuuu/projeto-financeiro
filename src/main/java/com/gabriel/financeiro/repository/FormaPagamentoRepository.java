@@ -13,5 +13,4 @@ public interface FormaPagamentoRepository extends JpaRepository<FormaPagamento, 
 
 	Optional<FormaPagamento> findByCodigo(String codigo);
 
-	Optional<FormaPagamento> findByNomeIgnoreCase(String nome);
 }

@@ -3,6 +3,7 @@ package com.gabriel.financeiro.controller;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,10 +15,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.entities.Receita;
-import com.gabriel.financeiro.repository.ReceitaRepository;
 import com.gabriel.financeiro.service.CategoriaService;
 import com.gabriel.financeiro.service.ReceitaService;
 
@@ -27,16 +28,13 @@ public class ReceitaController {
 
     private final ReceitaService receitaServ;
     private final CategoriaService categoriaServ;
-    private final ReceitaRepository receitaRepo;
 
     public ReceitaController(
             ReceitaService receitaServ,
-            CategoriaService categoriaServ,
-            ReceitaRepository receitaRepo) {
+            CategoriaService categoriaServ) {
 
         this.receitaServ = receitaServ;
         this.categoriaServ = categoriaServ;
-        this.receitaRepo = receitaRepo;
     }
 
     // ==========================================
@@ -69,16 +67,10 @@ public class ReceitaController {
                 paginaReceitas.getContent()
         );
 
-        Pageable pageableCategoria =
-                PageRequest.of(
-                        0,
-                        100,
-                        Sort.by("nome").ascending()
-                );
-
+        // Somente categorias do tipo RECEITA
         model.addAttribute(
                 "categoria",
-                categoriaServ.listCategoria(pageableCategoria)
+                categoriaServ.listByTipo("RECEITA")
         );
 
         model.addAttribute(
@@ -94,10 +86,15 @@ public class ReceitaController {
     // ==========================================
 
     @PostMapping("/create")
-    public String insertReceita(Receita receita) {
-
-        receitaServ.insertReceita(receita);
-
+    public String insertReceita(Receita receita, RedirectAttributes redirectAttributes) {
+        try {
+            receitaServ.insertReceita(receita);
+            redirectAttributes.addFlashAttribute("mensagem", "Receita cadastrada com sucesso!");
+            redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar receita: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+        }
         return "redirect:/receita";
     }
 
@@ -113,30 +110,17 @@ public class ReceitaController {
 
         LocalDate hoje = LocalDate.now();
 
-        if (mes == null) {
+        // Mes/ano ausentes ou invalidos voltam para o mes atual
+        if (mes == null || mes < 1 || mes > 12) {
             mes = hoje.getMonthValue();
         }
 
-        if (ano == null) {
+        if (ano == null || ano < 1900 || ano > 9999) {
             ano = hoje.getYear();
         }
 
-        // Primeiro dia do mês
-        LocalDate inicio =
-                LocalDate.of(ano, mes, 1);
-
-        // Último dia do mês
-        LocalDate fim =
-                inicio.withDayOfMonth(
-                        inicio.lengthOfMonth()
-                );
-
-        // BUSCA DIRETAMENTE NO REPOSITORY
         List<Receita> receitas =
-                receitaRepo.findByDataEntradaBetween(
-                        inicio,
-                        fim
-                );
+                receitaServ.buscarPorMesEAno(mes, ano);
 
         // Soma
         BigDecimal total =
@@ -155,16 +139,21 @@ public class ReceitaController {
 
         return "receitas";
     }
-    
+
  // ==========================================
  // EXCLUIR RECEITA
  // ==========================================
 
  @PostMapping("/excluir")
- public String excluirReceita(@RequestParam("id") java.util.UUID id) {
-
-     receitaServ.excluirReceita(id);
-
+ public String excluirReceita(@RequestParam("id") UUID id, RedirectAttributes redirectAttributes) {
+     try {
+         receitaServ.excluirReceita(id);
+         redirectAttributes.addFlashAttribute("mensagem", "Receita excluida com sucesso!");
+         redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+     } catch (Exception e) {
+         redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir receita: " + e.getMessage());
+         redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+     }
      return "redirect:/receita/receitas";
  }
 }

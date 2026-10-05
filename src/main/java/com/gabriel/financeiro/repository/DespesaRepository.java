@@ -3,38 +3,22 @@ package com.gabriel.financeiro.repository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import com.gabriel.financeiro.entities.CartaoCredito;
+import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.entities.Despesa;
+import com.gabriel.financeiro.entities.Pessoa;
 
 public interface DespesaRepository extends JpaRepository<Despesa, UUID> {
 
     // =========================================================
-    // TOTAL DE TODAS AS DESPESAS
-    // =========================================================
-
-    @Query("""
-        SELECT COALESCE(SUM(d.valorTotal), 0)
-        FROM Despesa d
-    """)
-    BigDecimal somarDespesas();
-
-
-    // =========================================================
-    // TOTAL DE DESPESAS PESSOAIS
+    // TOTAL DE DESPESAS PESSOAIS FORA DO CARTÃO NO PERÍODO
     // Pessoa = null
     // =========================================================
-
-    @Query("""
-        SELECT COALESCE(SUM(d.valorTotal), 0)
-        FROM Despesa d
-        WHERE d.pessoa IS NULL
-    """)
-    BigDecimal somarDespesasPessoais();
 
     @Query("""
         SELECT COALESCE(SUM(d.valorTotal), 0)
@@ -45,79 +29,28 @@ public interface DespesaRepository extends JpaRepository<Despesa, UUID> {
     """)
     BigDecimal somarDespesasPessoaisNaoCartaoPorPeriodo(LocalDate inicio, LocalDate fim);
 
-    @Query("""
-        SELECT COALESCE(SUM(d.valorTotal), 0)
-        FROM Despesa d
-        WHERE d.pessoa IS NULL
-          AND d.dataCompra BETWEEN :inicio AND :fim
-    """)
-    BigDecimal somarDespesasPessoaisPorPeriodo(LocalDate inicio, LocalDate fim);
-
-    @Query("""
-        SELECT COALESCE(SUM(d.valorTotal), 0)
-        FROM Despesa d
-        WHERE d.pessoa IS NOT NULL
-          AND d.dataCompra BETWEEN :inicio AND :fim
-    """)
-    BigDecimal somarDespesasTerceirosPorPeriodo(LocalDate inicio, LocalDate fim);
-
-
     // =========================================================
-    // TOTAL DE DESPESAS DE TERCEIROS
+    // LISTAR DESPESAS DE TERCEIROS
     // Pessoa preenchida
     // =========================================================
 
     @Query("""
-    	    SELECT d
-    	    FROM Despesa d
-    	    WHERE d.pessoa IS NOT NULL
-    	    ORDER BY d.dataCompra DESC
-    	""")
-    	List<Despesa> listarDespesasDeTerceiros();
-
-
-    // =========================================================
-    // TOTAL QUE TERCEIROS AINDA DEVEM
-    // =========================================================
-
-    @Query("""
-        SELECT COALESCE(SUM(d.valorTotal), 0)
+        SELECT d
         FROM Despesa d
         WHERE d.pessoa IS NOT NULL
-          AND d.devolvido = false
+        ORDER BY d.dataCompra DESC
     """)
-    BigDecimal somarTerceirosPendentes();
-
-
-    
-    @Query("""
-            SELECT COALESCE(SUM(d.valorTotal), 0)
-            FROM Despesa d
-            WHERE d.pessoa IS NOT NULL
-        """)
-        BigDecimal somarDespesasDeTerceiros();
-    
-    
-    @Query("""
-            SELECT COUNT(d)
-            FROM Despesa d
-            WHERE d.pessoa IS NOT NULL
-            AND d.devolvido = false
-        """)
-        long contarDespesasDeTerceiros();
-    // =========================================================
-    // BUSCAR DESPESA PELA DESCRIÇÃO
-    // =========================================================
-
-    Optional<Despesa> findByDescricaoIgnoreCase(
-            String descricao
-    );
-
+    List<Despesa> listarDespesasDeTerceiros();
 
     // =========================================================
-    // LISTAR DESPESAS DE TERCEIROS
+    // VÍNCULOS (usados antes de excluir cadastros)
     // =========================================================
 
-    List<Despesa>
-    findByPessoaIsNotNullOrderByDataCompraDesc();
+    List<Despesa> findByCartao(CartaoCredito cartao);
+
+    boolean existsByCartao(CartaoCredito cartao);
+
+    boolean existsByCategoria(Categoria categoria);
+
+    boolean existsByPessoa(Pessoa pessoa);
 }

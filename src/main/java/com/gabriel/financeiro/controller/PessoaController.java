@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.gabriel.financeiro.entities.Pessoa;
 import com.gabriel.financeiro.service.PessoaService;
@@ -42,33 +43,37 @@ public class PessoaController {
         Page<Pessoa> paginaPessoa =
                 pessoaServ.listPessoa(pageable);
 
-        model.addAttribute(
-                "paginaPessoa",
-                paginaPessoa
-        );
-
-        model.addAttribute(
-                "pessoa",
-                new Pessoa()
-        );
+        model.addAttribute("paginaPessoa", paginaPessoa);
+        model.addAttribute("pessoa", new Pessoa());
 
         return "pessoa";
     }
 
     @PostMapping
-    public String insertPessoa(Pessoa pessoa) {
-
-        pessoaServ.insertPessoa(pessoa);
-
+    public String insertPessoa(Pessoa pessoa, RedirectAttributes redirectAttributes) {
+        try {
+            pessoaServ.insertPessoa(pessoa);
+            redirectAttributes.addFlashAttribute("mensagem", "Pessoa cadastrada com sucesso!");
+            redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar pessoa: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+        }
         return "redirect:/pessoa";
     }
 
     @PostMapping("/excluir")
     public String excluirPessoa(
-            @RequestParam UUID id) {
-
-        pessoaServ.deletePessoa(id);
-
+            @RequestParam UUID id,
+            RedirectAttributes redirectAttributes) {
+        try {
+            pessoaServ.deletePessoa(id);
+            redirectAttributes.addFlashAttribute("mensagem", "Pessoa excluida com sucesso!");
+            redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir pessoa: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+        }
         return "redirect:/pessoa";
     }
 }

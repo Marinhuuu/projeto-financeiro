@@ -21,4 +21,8 @@ public interface FaturaCartaoRepository extends JpaRepository<FaturaCartao, UUID
             Integer mesReferencia,
             Integer anoReferencia
     );
+
+    List<FaturaCartao> findByCartao(CartaoCredito cartao);
+
+    List<FaturaCartao> findAllByOrderByAnoReferenciaDescMesReferenciaDesc();
 }

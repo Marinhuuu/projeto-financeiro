@@ -8,13 +8,13 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -35,53 +35,50 @@ public class ParcelaController {
     @GetMapping
     public String pageParcela(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100000") int size,
+            @RequestParam(defaultValue = "20") int size,
             Model model) {
 
         parcelaServ.atualizarParcelasAtrasadas();
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by("dataVencimento").ascending().and(Sort.by("qtdParcela")));
 
         Page<Parcela> paginaParcelas =
                 parcelaServ.ListParcela(pageable);
 
-        BigDecimal totalPendente =
-                parcelaServ.calcularTotalPendente();
-
-        BigDecimal totalPago =
-                parcelaServ.calcularTotalPago();
-
-        BigDecimal percentualPago =
-                parcelaServ.calcularPercentualPago();
-
         model.addAttribute("paginaParcelas", paginaParcelas);
-        model.addAttribute("totalPendente", totalPendente);
-        model.addAttribute("totalPago", totalPago);
-        model.addAttribute("percentualPago", percentualPago);
+        model.addAttribute("totalPendente", parcelaServ.calcularTotalPendente());
+        model.addAttribute("totalPago", parcelaServ.calcularTotalPago());
+        model.addAttribute("percentualPago", parcelaServ.calcularPercentualPago());
 
         return "parcelas";
     }
 
     @PostMapping("/{id}/pagar")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> pagarParcela(
-            @PathVariable UUID id,
-            @RequestHeader(value = "X-Requested-With", required = false) String requestedWith) {
-
-        Parcela parcela = parcelaServ.pagarParcela(id);
-
-        return ResponseEntity.ok(construirRespostaJson(parcela));
+    public ResponseEntity<Map<String, Object>> pagarParcela(@PathVariable UUID id) {
+        try {
+            return ResponseEntity.ok(construirRespostaJson(parcelaServ.pagarParcela(id)));
+        } catch (Exception e) {
+            return respostaErro(e);
+        }
     }
 
     @PostMapping("/{id}/desfazer")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> desfazerPagamento(
-            @PathVariable UUID id,
-            @RequestHeader(value = "X-Requested-With", required = false) String requestedWith) {
+    public ResponseEntity<Map<String, Object>> desfazerPagamento(@PathVariable UUID id) {
+        try {
+            return ResponseEntity.ok(construirRespostaJson(parcelaServ.desfazerPagamento(id)));
+        } catch (Exception e) {
+            return respostaErro(e);
+        }
+    }
 
-        Parcela parcela = parcelaServ.desfazerPagamento(id);
-
-        return ResponseEntity.ok(construirRespostaJson(parcela));
+    private ResponseEntity<Map<String, Object>> respostaErro(Exception e) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("sucesso", false);
+        response.put("mensagem", e.getMessage());
+        return ResponseEntity.badRequest().body(response);
     }
 
     private Map<String, Object> construirRespostaJson(Parcela parcela) {

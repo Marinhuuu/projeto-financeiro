@@ -54,178 +54,8 @@
 	<!-- NAVBAR -->
 	<!-- ========================================================= -->
 
-	<nav class="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 mb-8 transition-all">
+	<nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
-		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-
-			<div class="flex items-center gap-3">
-
-				<div class="p-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-100 dark:shadow-none">
-
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-							d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-						</path>
-
-					</svg>
-
-				</div>
-
-				<h1 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-					Controle Financeiro
-				</h1>
-
-			</div>
-
-
-			<div class="flex items-center gap-1.5 sm:gap-2">
-
-
-				<a th:href="@{/categoria}"
-					class="px-3.5 py-2 text-sm font-medium text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100/80 dark:hover:bg-orange-900/50 rounded-xl transition duration-150 border border-orange-100 dark:border-orange-800/40">
-
-					Categorias
-
-				</a>
-
-
-				<a th:href="@{/cartao}"
-					class="px-3.5 py-2 text-sm font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100/80 dark:hover:bg-amber-900/50 rounded-xl transition duration-150 border border-amber-100 dark:border-amber-800/40">
-
-					Cartões
-
-				</a>
-
-
-				<a th:href="@{/pessoa}"
-					class="px-3.5 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-gray-50 dark:bg-slate-800/60 hover:bg-gray-100/80 dark:hover:bg-slate-700/60 rounded-xl transition duration-150 border border-gray-100 dark:border-slate-700">
-
-					Pessoas
-
-				</a>
-
-
-				<!-- RECEITA -->
-
-				<div class="relative inline-block">
-
-					<button type="button" onclick="document.getElementById('menuReceita').classList.toggle('hidden')"
-						class="px-3.5 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/50 rounded-xl transition duration-150 border border-emerald-100 dark:border-emerald-800/40 flex items-center gap-1.5">
-
-						Receita
-
-						<span class="text-xs opacity-60">
-							▾
-						</span>
-
-					</button>
-
-
-					<div id="menuReceita"
-						class="hidden absolute right-0 mt-2 w-40 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-1.5 z-50">
-
-						<a th:href="@{/receita}"
-							class="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/50 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-
-							Inserir
-
-						</a>
-
-						<a th:href="@{/receita/receitas}"
-							class="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/50 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
-
-							Gerenciar
-
-						</a>
-
-					</div>
-
-				</div>
-
-
-				<!-- DESPESA -->
-
-				<div class="relative inline-block">
-
-					<button type="button" onclick="document.getElementById('menuDespesa').classList.toggle('hidden')"
-						class="px-3.5 py-2 text-sm font-medium bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100/80 dark:hover:bg-rose-900/50 rounded-xl transition duration-150 border border-rose-100 dark:border-rose-800/40 flex items-center gap-1.5">
-
-						Despesa
-
-						<span class="text-xs opacity-60">
-							▾
-						</span>
-
-					</button>
-
-
-					<div id="menuDespesa"
-						class="hidden absolute right-0 mt-2 w-40 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-1.5 z-50">
-
-						<a th:href="@{/despesa}"
-							class="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-rose-50/80 dark:hover:bg-rose-950/50 hover:text-rose-700 dark:hover:text-rose-300 transition">
-
-							Inserir
-
-						</a>
-
-						<a th:href="@{/despesa/despesas}"
-							class="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-rose-50/80 dark:hover:bg-rose-950/50 hover:text-rose-700 dark:hover:text-rose-300 transition">
-
-							Gerenciar
-
-						</a>
-
-						<a th:href="@{/despesa/terceiros}"
-							class="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-rose-50/80 dark:hover:bg-rose-950/50 hover:text-rose-700 dark:hover:text-rose-300 transition">
-
-							Terceiros
-
-						</a>
-
-					</div>
-
-				</div>
-
-
-				<a th:href="@{/parcela}"
-					class="px-3.5 py-2 text-sm font-medium bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 hover:bg-sky-100/80 dark:hover:bg-sky-900/50 rounded-xl transition duration-150 border border-sky-100 dark:border-sky-800/40">
-
-					Parcelas
-
-				</a>
-
-
-				<a th:href="@{/faturas}"
-					class="px-3.5 py-2 text-sm font-medium bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/50 rounded-xl transition duration-150 border border-indigo-100 dark:border-indigo-800/40">
-
-					Faturas
-
-				</a>
-
-				<!-- BOTÃO DARK MODE -->
-				<button type="button"
-						onclick="toggleDarkMode()"
-						class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition duration-150 shadow-sm flex items-center justify-center ml-1"
-						title="Alternar Modo Escuro/Claro">
-					<!-- Ícone Sol (Modo Escuro) -->
-					<svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-							  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-					</svg>
-					<!-- Ícone Lua (Modo Claro) -->
-					<svg class="w-5 h-5 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-							  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-					</svg>
-				</button>
-
-			</div>
-
-		</div>
-
-	</nav>
 
 
 	<!-- ========================================================= -->
@@ -467,45 +297,6 @@
 				</div>
 
 
-				<!-- DESPESAS DE TERCEIROS -->
-
-				<div
-					class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition duration-200 flex flex-col justify-between relative overflow-hidden group">
-
-					<div class="absolute top-0 left-0 w-1.5 h-full bg-orange-500 rounded-l"></div>
-
-					<div
-						class="flex items-center justify-between text-slate-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition">
-
-						<span class="text-xs uppercase font-bold tracking-wider">
-							Despesas de Terceiros
-						</span>
-
-						<svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-								d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-10a4 4 0 110 8 4 4 0 000-8z">
-							</path>
-
-						</svg>
-
-					</div>
-
-
-					<p class="text-2xl font-black text-slate-900 dark:text-white mt-3 tracking-tight"
-						th:text="${'R$ ' + #numbers.formatDecimal(totalDespesasTerceiros ?: 0, 1, 2)}">
-
-						R$ 0,00
-
-					</p>
-
-
-					<span class="text-xs text-slate-400 mt-2">
-						Gastos feitos para outras pessoas
-					</span>
-
-				</div>
-
 
 				<!-- ================================================= -->
 				<!-- MINHAS PARCELAS -->
@@ -549,55 +340,7 @@
 							0
 						</span>
 
-						parcela(s) pendente(s)
-
-					</span>
-
-				</div>
-
-
-				<!-- ================================================= -->
-				<!-- PARCELAS DE TERCEIROS -->
-				<!-- ================================================= -->
-
-				<div
-					class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition duration-200 flex flex-col justify-between relative overflow-hidden group">
-
-					<div class="absolute top-0 left-0 w-1.5 h-full bg-orange-500 rounded-l"></div>
-
-
-					<div
-						class="flex items-center justify-between text-slate-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition">
-
-						<span class="text-xs uppercase font-bold tracking-wider">
-							Parcelas de Terceiros
-						</span>
-
-
-						<svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-								d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-10a4 4 0 110 8 4 4 0 000-8z">
-							</path>
-
-						</svg>
-
-					</div>
-
-
-					<p class="text-2xl font-black text-slate-900 dark:text-white mt-3 tracking-tight"
-					   th:text="${'R$ ' + #numbers.formatDecimal(valorParcelaTerceiro ?: 0, 1, 2)}">
-					    R$ 0,00
-					</p>
-
-
-					<span class="text-xs text-slate-400 mt-2">
-
-						<span th:text="${quantidadeParcelasTerceiros}">
-							0
-						</span>
-
-						parcela(s) pendente(s)
+						parcela(s) no mês
 
 					</span>
 
@@ -748,6 +491,8 @@
                           ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
                           : fatura.statusFatura.name() == 'FECHADA'
                           ? 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
+                          : fatura.statusFatura.name() == 'PAGA'
+                          ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                           : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800'}" th:text="${fatura.statusFatura}">
 
 							PENDENTE
@@ -885,46 +630,6 @@
 		</div>
 
 	</main>
-
-
-	<!-- ========================================================= -->
-	<!-- JAVASCRIPT -->
-	<!-- ========================================================= -->
-
-	<script>
-
-		document.addEventListener('click', function (event) {
-
-			const menuReceita =
-				document.getElementById('menuReceita');
-
-			const menuDespesa =
-				document.getElementById('menuDespesa');
-
-
-			if (
-				menuReceita &&
-				!menuReceita.parentElement.contains(event.target)
-			) {
-
-				menuReceita.classList.add('hidden');
-
-			}
-
-
-			if (
-				menuDespesa &&
-				!menuDespesa.parentElement.contains(event.target)
-			) {
-
-				menuDespesa.classList.add('hidden');
-
-			}
-
-		});
-
-	</script>
-
 
 </body>
 

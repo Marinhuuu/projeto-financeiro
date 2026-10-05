@@ -85,6 +85,8 @@ public class DespesaController {
 		// Auto-selecao: se houver exatamente 1 cartao, envia para o template
 		if (cartoes.size() == 1) {
 			model.addAttribute("cartaoUnico", cartoes.get(0));
+			// th:field do select usa este id para já vir selecionado
+			despesa.getCartao().setId(cartoes.get(0).getId());
 		}
 
 		// =====================================================
@@ -142,6 +144,20 @@ public class DespesaController {
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
 			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir despesa: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+		}
+		return "redirect:/despesa/despesas";
+	}
+
+	@PostMapping("/excluir-recorrencia")
+	public String excluirRecorrencia(@RequestParam UUID id, RedirectAttributes redirectAttributes) {
+		try {
+			int excluidas = despesaServ.excluirRecorrenciaAPartirDe(id);
+			redirectAttributes.addFlashAttribute("mensagem",
+					excluidas == 1 ? "Despesa excluida com sucesso!" : excluidas + " despesas da recorrencia excluidas com sucesso!");
+			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+		} catch (Exception e) {
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir recorrencia: " + e.getMessage());
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/despesa/despesas";

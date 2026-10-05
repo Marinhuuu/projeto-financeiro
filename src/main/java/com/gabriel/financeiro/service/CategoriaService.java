@@ -26,8 +26,16 @@ public class CategoriaService {
 		this.receitaRepo = receitaRepo;
 	}
 
-	public Page<Categoria> listCategoria(Pageable pageable) {
-		return categoriaRepo.findAll(pageable);
+	// tipo nulo/vazio: todas as categorias
+	public Page<Categoria> listCategoria(String tipo, Pageable pageable) {
+		if (tipo == null || tipo.isBlank()) {
+			return categoriaRepo.findAll(pageable);
+		}
+		return categoriaRepo.findByTipoIgnoreCase(tipo, pageable);
+	}
+
+	public long contarPorTipo(String tipo) {
+		return categoriaRepo.countByTipoIgnoreCase(tipo);
 	}
 
 	public List<Categoria> listByTipo(String tipo) {

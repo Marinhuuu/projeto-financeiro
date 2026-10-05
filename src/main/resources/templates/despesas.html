@@ -44,6 +44,9 @@
     <!-- NAVBAR -->
     <nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
+    <!-- MENSAGENS -->
+    <div th:replace="~{fragments/navbar :: flash}"></div>
+
     <!-- CONTEÚDO -->
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-16">
 
@@ -122,9 +125,12 @@
                             class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition duration-150">
 
                             <!-- DESCRIÇÃO -->
-                            <td class="px-6 py-4 font-bold text-slate-800 dark:text-slate-200"
-                                th:text="${d.descricao}">
-                                Supermercado
+                            <td class="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">
+                                <span th:text="${d.descricao}">Supermercado</span>
+                                <span th:if="${d.parteDeRecorrencia}"
+                                      class="ml-1.5 inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-full bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/40 whitespace-nowrap"
+                                      th:text="${'↻ ' + d.ocorrencia + '/' + d.totalOcorrencias}"
+                                      title="Despesa recorrente">↻ 1/12</span>
                             </td>
 
                             <!-- CATEGORIA -->
@@ -155,7 +161,20 @@
                             </td>
 
                             <!-- AÇÕES -->
-                            <td class="px-6 py-4 text-right">
+                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                <form th:if="${d.parteDeRecorrencia and d.ocorrencia < d.totalOcorrencias}"
+                                      th:action="@{/despesa/excluir-recorrencia}"
+                                      method="post"
+                                      class="inline">
+                                    <input type="hidden"
+                                           name="id"
+                                           th:value="${d.id}">
+                                    <button type="submit"
+                                            onclick="return confirm('Excluir esta despesa e todas as próximas desta recorrência?')"
+                                            class="inline-flex items-center gap-1.5 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/50 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/40 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                        Excluir esta e as próximas
+                                    </button>
+                                </form>
                                 <form th:action="@{/despesa/excluir}"
                                       method="post"
                                       class="inline">

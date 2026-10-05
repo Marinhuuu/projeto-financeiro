@@ -2,7 +2,6 @@ package com.gabriel.financeiro.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -16,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.entities.Categoria;
-import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.Despesa;
 import com.gabriel.financeiro.entities.FaturaCartao;
 import com.gabriel.financeiro.entities.Parcela;
@@ -34,6 +32,8 @@ import com.gabriel.financeiro.repository.PessoaRepository;
 public class DespesaService {
 
 	private static final int MAX_PARCELAS = 72;
+
+	private static final int MAX_OCORRENCIAS = 60;
 
 	private final DespesaRepository despesaRepo;
 	private final CicloFinanceiroService cicloService;
@@ -80,12 +80,6 @@ public class DespesaService {
 		if (despesa.getDataCompra() == null) {
 			throw new RuntimeException("Informe a data da compra");
 		}
-
-		LocalDate dataCompra = despesa.getDataCompra();
-
-		CicloFinanceiro ciclo = cicloService.getOuCriarCiclo(dataCompra);
-
-		despesa.setCiclo(ciclo);
 
 		// Se não informou pessoa,
 		// consideramos que a despesa é do próprio Gabriel.
@@ -168,14 +162,76 @@ public class DespesaService {
 
 		despesa.setCategoria(categoria);
 
-		Despesa despesaSalva = despesaRepo.save(despesa);
+		// Recorrência: a despesa se repete todo mês por totalOcorrencias meses
+		int ocorrencias = 1;
 
-		if (isCartao) {
+		if (Boolean.TRUE.equals(despesa.getRecorrente())) {
 
-			gerarParcelas(despesaSalva);
+			Integer total = despesa.getTotalOcorrencias();
+
+			if (total == null || total < 2 || total > MAX_OCORRENCIAS) {
+				throw new RuntimeException("A recorrência deve ser de 2 a " + MAX_OCORRENCIAS + " meses");
+			}
+
+			ocorrencias = total;
+
+			despesa.setGrupoRecorrencia(UUID.randomUUID());
+			despesa.setOcorrencia(1);
+
+		} else {
+
+			despesa.setGrupoRecorrencia(null);
+			despesa.setOcorrencia(null);
+			despesa.setTotalOcorrencias(null);
 		}
 
-		return despesaSalva;
+		Despesa primeira = null;
+
+		for (int i = 0; i < ocorrencias; i++) {
+
+			Despesa atual = i == 0 ? despesa : copiarParaMesSeguinte(despesa, i);
+
+			// Cada ocorrência cai no ciclo (e nas faturas) do seu próprio mês
+			atual.setCiclo(cicloService.getOuCriarCiclo(atual.getDataCompra()));
+
+			Despesa salva = despesaRepo.save(atual);
+
+			if (isCartao) {
+
+				gerarParcelas(salva);
+			}
+
+			if (primeira == null) {
+				primeira = salva;
+			}
+		}
+
+		return primeira;
+	}
+
+	/*
+	 * Cópia da despesa original "meses" meses depois.
+	 * plusMonths sobre a data original ajusta o dia ao fim do mês sem acumular deslocamento
+	 * (31/01 -> 28/02 -> 31/03).
+	 */
+	private Despesa copiarParaMesSeguinte(Despesa original, int meses) {
+
+		Despesa copia = new Despesa();
+
+		copia.setDescricao(original.getDescricao());
+		copia.setValorTotal(original.getValorTotal());
+		copia.setDataCompra(original.getDataCompra().plusMonths(meses));
+		copia.setFormaPagamento(original.getFormaPagamento());
+		copia.setQtdParcelas(original.getQtdParcelas());
+		copia.setCategoria(original.getCategoria());
+		copia.setCartao(original.getCartao());
+		copia.setPessoa(original.getPessoa());
+		copia.setDevolvido(false);
+		copia.setGrupoRecorrencia(original.getGrupoRecorrencia());
+		copia.setOcorrencia(meses + 1);
+		copia.setTotalOcorrencias(original.getTotalOcorrencias());
+
+		return copia;
 	}
 
 	// =========================================================
@@ -226,7 +282,34 @@ public class DespesaService {
 	@Transactional
 	public void excluirDespesa(UUID id) {
 
+		excluir(despesaRepo.findById(id).orElseThrow(() -> new RuntimeException("Despesa não encontrada")));
+	}
+
+	/*
+	 * Exclui a ocorrência informada e as seguintes da mesma recorrência
+	 * (as anteriores, já lançadas, são mantidas). Retorna quantas foram excluídas.
+	 */
+	@Transactional
+	public int excluirRecorrenciaAPartirDe(UUID id) {
+
 		Despesa despesa = despesaRepo.findById(id).orElseThrow(() -> new RuntimeException("Despesa não encontrada"));
+
+		if (!despesa.isParteDeRecorrencia()) {
+			excluir(despesa);
+			return 1;
+		}
+
+		List<Despesa> seguintes = despesaRepo.findByGrupoRecorrenciaAndOcorrenciaGreaterThanEqualOrderByOcorrenciaAsc(
+				despesa.getGrupoRecorrencia(), despesa.getOcorrencia());
+
+		for (Despesa d : seguintes) {
+			excluir(d);
+		}
+
+		return seguintes.size();
+	}
+
+	private void excluir(Despesa despesa) {
 
 		Set<FaturaCartao> faturasAfetadas = new LinkedHashSet<>();
 

@@ -1,5 +1,6 @@
 package com.gabriel.financeiro.service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,8 +38,16 @@ public class FormaPagamentoService {
 		}
 	}
 
+	// Ordem de exibição nos formulários; códigos fora da lista vão para o fim
+	private static final List<String> ORDEM = List.of("CARTAO_CREDITO", "CARTAO_VISTA", "DEBITO", "PIX", "DINHEIRO");
+
 	public List<FormaPagamento> listarTodas() {
-		return formaPagamentoRepo.findAll();
+		return formaPagamentoRepo.findAll().stream()
+				.sorted(Comparator.comparingInt((FormaPagamento f) -> {
+					int posicao = ORDEM.indexOf(f.getCodigo());
+					return posicao < 0 ? ORDEM.size() : posicao;
+				}).thenComparing(FormaPagamento::getNome))
+				.toList();
 	}
 
 	public FormaPagamento buscarPorId(UUID id) {

@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table
@@ -55,6 +56,19 @@ public class Despesa {
 	@ManyToOne
 	@JoinColumn(name = "pessoa_id", nullable = true)
 	private Pessoa pessoa;
+
+	// ===== RECORRÊNCIA =====
+	// Despesas geradas juntas por "repetir mensalmente" compartilham o mesmo grupo.
+	private UUID grupoRecorrencia;
+
+	// Posição desta despesa na recorrência (1..totalOcorrencias)
+	private Integer ocorrencia;
+
+	private Integer totalOcorrencias;
+
+	// Só para o formulário: marca que a despesa deve se repetir por totalOcorrencias meses
+	@Transient
+	private Boolean recorrente;
 
 	public Despesa() {
 	}
@@ -165,6 +179,42 @@ public class Despesa {
 
 	public void setDevolvido(Boolean devolvido) {
 	    this.devolvido = devolvido;
+	}
+
+	public UUID getGrupoRecorrencia() {
+		return grupoRecorrencia;
+	}
+
+	public void setGrupoRecorrencia(UUID grupoRecorrencia) {
+		this.grupoRecorrencia = grupoRecorrencia;
+	}
+
+	public Integer getOcorrencia() {
+		return ocorrencia;
+	}
+
+	public void setOcorrencia(Integer ocorrencia) {
+		this.ocorrencia = ocorrencia;
+	}
+
+	public Integer getTotalOcorrencias() {
+		return totalOcorrencias;
+	}
+
+	public void setTotalOcorrencias(Integer totalOcorrencias) {
+		this.totalOcorrencias = totalOcorrencias;
+	}
+
+	public Boolean getRecorrente() {
+		return recorrente;
+	}
+
+	public void setRecorrente(Boolean recorrente) {
+		this.recorrente = recorrente;
+	}
+
+	public boolean isParteDeRecorrencia() {
+		return grupoRecorrencia != null;
 	}
 	
 	@Override

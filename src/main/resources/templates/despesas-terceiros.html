@@ -39,10 +39,13 @@
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen antialiased p-4 sm:p-8 transition-colors duration-200">
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen antialiased transition-colors duration-200">
+
+    <!-- NAVBAR -->
+    <nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
     <!-- CONTAINER PRINCIPAL -->
-    <div class="max-w-6xl mx-auto space-y-6">
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-16">
 
         <!-- CABEÇALHO -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
@@ -67,19 +70,6 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <!-- BOTÃO DARK MODE -->
-                    <button type="button"
-                            onclick="toggleDarkMode()"
-                            class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition duration-150 shadow-sm flex items-center justify-center"
-                            title="Alternar Modo Escuro/Claro">
-                        <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                        </svg>
-                        <svg class="w-4 h-4 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                        </svg>
-                    </button>
-
                     <a th:href="@{/despesa}"
                        class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold px-4 py-2.5 rounded-xl transition border border-slate-200/60 dark:border-slate-700">
                         ← Nova Despesa
@@ -255,7 +245,7 @@
 
         </div>
 
-    </div>
+    </main>
 
 </body>
 </html>

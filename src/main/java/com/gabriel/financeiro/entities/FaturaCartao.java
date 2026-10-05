@@ -18,9 +18,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "cartaoId", "mesReferencia", "anoReferencia" }))
 public class FaturaCartao {
 
 	@Id

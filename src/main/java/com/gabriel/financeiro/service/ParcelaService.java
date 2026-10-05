@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.gabriel.financeiro.entities.Parcela;
 import com.gabriel.financeiro.enums.StatusParcela;
@@ -17,10 +18,12 @@ import com.gabriel.financeiro.repository.ParcelaRepository;
 @Service
 public class ParcelaService {
 
-	private ParcelaRepository parcelaRepo;
+	private final ParcelaRepository parcelaRepo;
+	private final FaturaCartaoService faturaService;
 
-	public ParcelaService(ParcelaRepository parcelaRepo) {
+	public ParcelaService(ParcelaRepository parcelaRepo, FaturaCartaoService faturaService) {
 		this.parcelaRepo = parcelaRepo;
+		this.faturaService = faturaService;
 	}
 
 	public Page<Parcela> ListParcela(Pageable pageable) {
@@ -28,50 +31,46 @@ public class ParcelaService {
 	}
 
 	public BigDecimal calcularTotalPendente() {
-	    return parcelaRepo.findAll().stream()
-	            .filter(p -> p.getStatusParcela() == StatusParcela.PENDENTE)
-	            .map(Parcela::getValorParcela)
-	            .reduce(BigDecimal.ZERO, BigDecimal::add);
+	    return parcelaRepo.somarPorStatus(StatusParcela.PENDENTE);
 	}
 
 	public BigDecimal calcularTotalPago() {
-	    return parcelaRepo.findAll().stream()
-	            .filter(p -> p.getStatusParcela() == StatusParcela.PAGA)
-	            .map(Parcela::getValorParcela)
-	            .reduce(BigDecimal.ZERO, BigDecimal::add);
+	    return parcelaRepo.somarPorStatus(StatusParcela.PAGA);
 	}
 
 	public BigDecimal calcularPercentualPago() {
 
-	    BigDecimal total = parcelaRepo.findAll().stream()
-	            .map(Parcela::getValorParcela)
-	            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-	    BigDecimal totalPago = calcularTotalPago();
+	    BigDecimal total = parcelaRepo.somarTodas();
 
 	    if (total.compareTo(BigDecimal.ZERO) == 0) {
 	        return BigDecimal.ZERO;
 	    }
 
-	    return totalPago
+	    return calcularTotalPago()
 	            .divide(total, 4, RoundingMode.HALF_UP)
 	            .multiply(BigDecimal.valueOf(100));
 	}
-	
+
+	@Transactional
 	public Parcela pagarParcela(UUID id) {
 
-	    Parcela parcela = parcelaRepo.findById(id)
-	            .orElseThrow(() -> new RuntimeException("Parcela não encontrada"));
+	    Parcela parcela = buscarPorId(id);
 
 	    parcela.setStatusParcela(StatusParcela.PAGA);
 
-	    return parcelaRepo.save(parcela);
+	    Parcela salva = parcelaRepo.save(parcela);
+
+	    if (salva.getFatura() != null) {
+	        faturaService.sincronizar(salva.getFatura());
+	    }
+
+	    return salva;
 	}
 
+	@Transactional
 	public Parcela desfazerPagamento(UUID id) {
 
-	    Parcela parcela = parcelaRepo.findById(id)
-	            .orElseThrow(() -> new RuntimeException("Parcela não encontrada"));
+	    Parcela parcela = buscarPorId(id);
 
 	    if (parcela.getDataVencimento() != null && parcela.getDataVencimento().isBefore(LocalDate.now())) {
 	        parcela.setStatusParcela(StatusParcela.ATRASADA);
@@ -79,27 +78,23 @@ public class ParcelaService {
 	        parcela.setStatusParcela(StatusParcela.PENDENTE);
 	    }
 
-	    return parcelaRepo.save(parcela);
+	    Parcela salva = parcelaRepo.save(parcela);
+
+	    if (salva.getFatura() != null) {
+	        faturaService.sincronizar(salva.getFatura());
+	    }
+
+	    return salva;
 	}
 
 	public Parcela buscarPorId(UUID id) {
 	    return parcelaRepo.findById(id)
 	            .orElseThrow(() -> new RuntimeException("Parcela não encontrada"));
 	}
-	
+
+	@Transactional
 	public void atualizarParcelasAtrasadas() {
 
-	    LocalDate hoje = LocalDate.now();
-
-	    for (Parcela parcela : parcelaRepo.findAll()) {
-
-	        if (parcela.getStatusParcela() == StatusParcela.PENDENTE
-	                && parcela.getDataVencimento().isBefore(hoje)) {
-
-	            parcela.setStatusParcela(StatusParcela.ATRASADA);
-
-	            parcelaRepo.save(parcela);
-	        }
-	    }
+	    parcelaRepo.marcarAtrasadas(StatusParcela.PENDENTE, StatusParcela.ATRASADA, LocalDate.now());
 	}
 }

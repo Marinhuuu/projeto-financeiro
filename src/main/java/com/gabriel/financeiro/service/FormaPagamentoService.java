@@ -8,8 +8,9 @@ import org.springframework.stereotype.Service;
 import com.gabriel.financeiro.entities.FormaPagamento;
 import com.gabriel.financeiro.repository.FormaPagamentoRepository;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.transaction.Transactional;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FormaPagamentoService {
@@ -20,14 +21,19 @@ public class FormaPagamentoService {
 		this.formaPagamentoRepo = formaPagamentoRepo;
 	}
 
-	@PostConstruct
+	@EventListener(ApplicationReadyEvent.class)
 	@Transactional
 	public void inicializarFormasPadrao() {
-		if (formaPagamentoRepo.count() == 0) {
-			formaPagamentoRepo.save(new FormaPagamento(null, "Cartão de Crédito", "CARTAO_CREDITO", true));
-			formaPagamentoRepo.save(new FormaPagamento(null, "PIX", "PIX", false));
-			formaPagamentoRepo.save(new FormaPagamento(null, "Dinheiro", "DINHEIRO", false));
-			formaPagamentoRepo.save(new FormaPagamento(null, "Cartão de Débito", "DEBITO", false));
+		garantirFormaPagamento("Cartão de Crédito",   "CARTAO_CREDITO", true);
+		garantirFormaPagamento("Crédito à Vista",      "CARTAO_VISTA",   true);
+		garantirFormaPagamento("PIX",                  "PIX",            false);
+		garantirFormaPagamento("Dinheiro",             "DINHEIRO",       false);
+		garantirFormaPagamento("Cartão de Débito",     "DEBITO",         false);
+	}
+
+	private void garantirFormaPagamento(String nome, String codigo, boolean permiteParcelamento) {
+		if (formaPagamentoRepo.findByCodigo(codigo).isEmpty()) {
+			formaPagamentoRepo.save(new FormaPagamento(null, nome, codigo, permiteParcelamento));
 		}
 	}
 

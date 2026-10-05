@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.entities.Categoria;
@@ -57,45 +58,39 @@ public class DespesaController {
 		Page<Despesa> paginaDespesa = despesaServ.ListDespesa(pageable);
 
 		Despesa despesa = new Despesa();
-
 		despesa.setCategoria(new Categoria());
-
 		despesa.setCartao(new CartaoCredito());
-
 		despesa.setFormaPagamento(new FormaPagamento());
 
 		model.addAttribute("despesa", despesa);
-
 		model.addAttribute("paginaDespesa", paginaDespesa);
 
 		// =====================================================
 		// FORMAS DE PAGAMENTO
 		// =====================================================
-
 		model.addAttribute("formasPagamento", formaPagamentoServ.listarTodas());
 
 		// =====================================================
-		// CATEGORIAS
+		// CATEGORIAS (somente tipo DESPESA)
 		// =====================================================
-
-		Pageable pageableCategoria = PageRequest.of(0, 100, Sort.by("nome").ascending());
-
-		model.addAttribute("categorias", categoriaServ.listCategoria(pageableCategoria));
+		model.addAttribute("categorias", categoriaServ.listByTipo("DESPESA"));
 
 		// =====================================================
-		// CARTÕES
+		// CARTOES
 		// =====================================================
-
 		Pageable pageableCartao = PageRequest.of(0, 100, Sort.by("nome").ascending());
+		List<CartaoCredito> cartoes = cartaoServ.ListCartao(pageableCartao).getContent();
+		model.addAttribute("cartoes", cartoes);
 
-		model.addAttribute("cartoes", cartaoServ.ListCartao(pageableCartao));
+		// Auto-selecao: se houver exatamente 1 cartao, envia para o template
+		if (cartoes.size() == 1) {
+			model.addAttribute("cartaoUnico", cartoes.get(0));
+		}
 
 		// =====================================================
 		// PESSOAS
 		// =====================================================
-
 		Pageable pageablePessoa = PageRequest.of(0, 100, Sort.by("nome").ascending());
-
 		model.addAttribute("pessoas", pessoaServ.listPessoa(pageablePessoa));
 
 		return "despesa";
@@ -106,10 +101,15 @@ public class DespesaController {
 	// =========================================================
 
 	@PostMapping
-	public String insertDespesa(Despesa despesa) {
-
-		despesaServ.insertDespesa(despesa);
-
+	public String insertDespesa(Despesa despesa, RedirectAttributes redirectAttributes) {
+		try {
+			despesaServ.insertDespesa(despesa);
+			redirectAttributes.addFlashAttribute("mensagem", "Despesa cadastrada com sucesso!");
+			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+		} catch (Exception e) {
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar despesa: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+		}
 		return "redirect:/despesa";
 	}
 
@@ -135,10 +135,15 @@ public class DespesaController {
 	// =========================================================
 
 	@PostMapping("/excluir")
-	public String excluirDespesa(@RequestParam UUID id) {
-
-		despesaServ.excluirDespesa(id);
-
+	public String excluirDespesa(@RequestParam UUID id, RedirectAttributes redirectAttributes) {
+		try {
+			despesaServ.excluirDespesa(id);
+			redirectAttributes.addFlashAttribute("mensagem", "Despesa excluida com sucesso!");
+			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+		} catch (Exception e) {
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir despesa: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+		}
 		return "redirect:/despesa/despesas";
 	}
 
@@ -161,22 +166,32 @@ public class DespesaController {
 	// =========================================================
 
 	@PostMapping("/terceiros/devolver")
-	public String marcarComoDevolvido(@RequestParam UUID id) {
-
-		despesaServ.marcarComoDevolvido(id);
-
+	public String marcarComoDevolvido(@RequestParam UUID id, RedirectAttributes redirectAttributes) {
+		try {
+			despesaServ.marcarComoDevolvido(id);
+			redirectAttributes.addFlashAttribute("mensagem", "Despesa marcada como devolvida!");
+			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+		} catch (Exception e) {
+			redirectAttributes.addFlashAttribute("mensagem", "Erro: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+		}
 		return "redirect:/despesa/terceiros";
 	}
 
 	// =========================================================
-	// DESFAZER DEVOLUÇÃO
+	// DESFAZER DEVOLUCAO
 	// =========================================================
 
 	@PostMapping("/terceiros/desfazer-devolucao")
-	public String marcarComoNaoDevolvido(@RequestParam UUID id) {
-
-		despesaServ.marcarComoNaoDevolvido(id);
-
+	public String marcarComoNaoDevolvido(@RequestParam UUID id, RedirectAttributes redirectAttributes) {
+		try {
+			despesaServ.marcarComoNaoDevolvido(id);
+			redirectAttributes.addFlashAttribute("mensagem", "Devolucao desfeita com sucesso!");
+			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+		} catch (Exception e) {
+			redirectAttributes.addFlashAttribute("mensagem", "Erro: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+		}
 		return "redirect:/despesa/terceiros";
 	}
 }

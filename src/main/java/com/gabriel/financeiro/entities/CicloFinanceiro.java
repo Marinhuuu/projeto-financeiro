@@ -8,9 +8,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "ciclo_financeiro")
+@Table(name = "ciclo_financeiro", uniqueConstraints = @UniqueConstraint(columnNames = { "dataInicio" }))
 public class CicloFinanceiro {
 
     @Id

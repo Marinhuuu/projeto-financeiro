@@ -5,7 +5,8 @@ public enum StatusFatura {
 	VENCIDA("Vencida"),
 	EM_ABERTO("Em Aberto"),
 	PENDENTE("Pendente"),
-	FECHADA("Fechada");
+	FECHADA("Fechada"),
+	PAGA("Paga");
 	   private final String descricao;
 
 	    StatusFatura(String descricao) {

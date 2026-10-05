@@ -32,42 +32,7 @@ public class CicloFinanceiroService {
         // Fecha ciclos anteriores
         fecharCiclosAnteriores(hoje);
 
-        int diaFechamento =
-                configService.getConfiguracao().getDiaFechamento();
-
-        LocalDate inicio;
-        LocalDate fim;
-
-        if (hoje.getDayOfMonth() <= diaFechamento) {
-
-            fim = ajustarDia(
-                    YearMonth.from(hoje),
-                    diaFechamento
-            );
-
-            inicio = fim
-                    .minusMonths(1)
-                    .plusDays(1);
-
-        } else {
-
-            inicio = ajustarDia(
-                    YearMonth.from(hoje),
-                    diaFechamento
-            ).plusDays(1);
-
-            fim = ajustarDia(
-                    YearMonth.from(hoje).plusMonths(1),
-                    diaFechamento
-            );
-        }
-
-        return cicloRepo
-                .findByDataInicioLessThanEqualAndDataFimGreaterThanEqual(
-                        hoje,
-                        hoje
-                )
-                .orElseGet(() -> criarCiclo(inicio, fim));
+        return getOuCriarCiclo(hoje);
     }
 
     private void fecharCiclosAnteriores(LocalDate hoje) {
@@ -109,38 +74,29 @@ public class CicloFinanceiroService {
 
         return cicloRepo.save(ciclo);
     }
-    
+
+    /*
+     * O ciclo termina no dia de fechamento (ajustado ao tamanho do mês)
+     * e começa no dia seguinte ao fechamento do mês anterior.
+     * O início é calculado a partir do fechamento do mês anterior, e não
+     * com fim.minusMonths(1), para não sobrepor ciclos com fechamento 29-31.
+     */
     public CicloFinanceiro calcularCiclo(LocalDate data) {
 
         int diaFechamento =
                 configService.getConfiguracao().getDiaFechamento();
 
-        LocalDate inicio;
-        LocalDate fim;
+        YearMonth mesFim =
+                data.getDayOfMonth() <= ajustarDia(YearMonth.from(data), diaFechamento).getDayOfMonth()
+                        ? YearMonth.from(data)
+                        : YearMonth.from(data).plusMonths(1);
 
-        if (data.getDayOfMonth() <= diaFechamento) {
+        LocalDate fim =
+                ajustarDia(mesFim, diaFechamento);
 
-            fim = ajustarDia(
-                    YearMonth.from(data),
-                    diaFechamento
-            );
-
-            inicio = fim
-                    .minusMonths(1)
-                    .plusDays(1);
-
-        } else {
-
-            inicio = ajustarDia(
-                    YearMonth.from(data),
-                    diaFechamento
-            ).plusDays(1);
-
-            fim = ajustarDia(
-                    YearMonth.from(data).plusMonths(1),
-                    diaFechamento
-            );
-        }
+        LocalDate inicio =
+                ajustarDia(mesFim.minusMonths(1), diaFechamento)
+                        .plusDays(1);
 
         return new CicloFinanceiro(
                 null,
@@ -149,11 +105,12 @@ public class CicloFinanceiroService {
                 false
         );
     }
+
     @Transactional
     public CicloFinanceiro getOuCriarCiclo(LocalDate data) {
 
         return cicloRepo
-                .findByDataInicioLessThanEqualAndDataFimGreaterThanEqual(
+                .findFirstByDataInicioLessThanEqualAndDataFimGreaterThanEqualOrderByDataInicioDesc(
                         data,
                         data
                 )

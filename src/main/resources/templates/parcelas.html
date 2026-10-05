@@ -86,7 +86,7 @@
 
                 <h3 id="totalPendenteValor"
                     class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-                    th:text="${'R$ ' + #numbers.formatDecimal(totalPendente ?: 0, 1, 2)}">
+                    th:text="${'R$ ' + #numbers.formatDecimal(totalPendente ?: 0, 1, 'POINT', 2, 'COMMA')}">
 
                     R$ 0,00
 
@@ -112,7 +112,7 @@
 
                 <h3 id="totalPagoValor"
                     class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-                    th:text="${'R$ ' + #numbers.formatDecimal(totalPago ?: 0, 1, 2)}">
+                    th:text="${'R$ ' + #numbers.formatDecimal(totalPago ?: 0, 1, 'POINT', 2, 'COMMA')}">
 
                     R$ 0,00
 
@@ -138,7 +138,7 @@
 
                 <span id="percentualPagoBadge"
                       class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800/40"
-                      th:text="${percentualPago != null ? #numbers.formatDecimal(percentualPago, 1, 2) + '%' : '0.00%'}">
+                      th:text="${percentualPago != null ? #numbers.formatDecimal(percentualPago, 1, 'POINT', 2, 'COMMA') + '%' : '0,00%'}">
 
                     0.00%
 
@@ -317,7 +317,7 @@
 
                         <!-- VALOR -->
                         <td class="py-4 px-5 font-extrabold text-slate-900 dark:text-white"
-                            th:text="${'R$ ' + #numbers.formatDecimal(p.valorParcela, 1, 2)}">
+                            th:text="${'R$ ' + #numbers.formatDecimal(p.valorParcela, 1, 'POINT', 2, 'COMMA')}">
 
                             R$ 100,00
 
@@ -519,7 +519,10 @@ async function executarAcaoParcela(botao, acao) {
             totalPagoEl.textContent = formatarMoeda(data.totalPago);
         }
         if (percentualBadgeEl && data.percentualPago !== undefined) {
-            const perc = Number(data.percentualPago).toFixed(2) + '%';
+            const perc = Number(data.percentualPago).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }) + '%';
             percentualBadgeEl.textContent = perc;
         }
         if (percentualBarraEl && data.percentualPago !== undefined) {

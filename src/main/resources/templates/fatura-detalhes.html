@@ -135,7 +135,7 @@
                         Valor Total
                     </p>
                     <p class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 tracking-tight font-mono"
-                       th:text="${'R$ ' + #numbers.formatDecimal(fatura.valorTotal, 1, 2)}">
+                       th:text="${'R$ ' + #numbers.formatDecimal(fatura.valorTotal, 1, 'POINT', 2, 'COMMA')}">
                         R$ 0,00
                     </p>
                 </div>
@@ -213,7 +213,7 @@
                                 20/08/2026
                             </td>
                             <td class="py-4 px-5 font-extrabold text-slate-900 dark:text-white font-mono"
-                                th:text="${'R$ ' + #numbers.formatDecimal(parcela.valorParcela, 1, 2)}">
+                                th:text="${'R$ ' + #numbers.formatDecimal(parcela.valorParcela, 1, 'POINT', 2, 'COMMA')}">
                                 R$ 100,00
                             </td>
                             <td class="py-4 px-5">
@@ -276,7 +276,7 @@
                                 20/08/2026
                             </td>
                             <td class="py-4 px-5 font-extrabold text-slate-900 dark:text-white font-mono"
-                                th:text="${'R$ ' + #numbers.formatDecimal(parcela.valorParcela, 1, 2)}">
+                                th:text="${'R$ ' + #numbers.formatDecimal(parcela.valorParcela, 1, 'POINT', 2, 'COMMA')}">
                                 R$ 100,00
                             </td>
                             <td class="py-4 px-5">

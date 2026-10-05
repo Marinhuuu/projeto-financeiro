@@ -137,7 +137,7 @@
                             </p>
 
                             <p class="font-extrabold text-indigo-600 dark:text-indigo-400 text-base font-mono"
-                               th:text="${'R$ ' + #numbers.formatDecimal(fatura.valorTotal, 1, 2)}">
+                               th:text="${'R$ ' + #numbers.formatDecimal(fatura.valorTotal, 1, 'POINT', 2, 'COMMA')}">
                                 R$ 0,00
                             </p>
                         </div>

@@ -290,7 +290,7 @@
 
                         <!-- VALOR -->
                         <td class="p-3 text-sm font-extrabold text-rose-600 dark:text-rose-400"
-                            th:text="${'R$ ' + #numbers.formatDecimal(d.valorTotal, 1, 2)}">
+                            th:text="${'R$ ' + #numbers.formatDecimal(d.valorTotal, 1, 'POINT', 2, 'COMMA')}">
                             R$ 250,00
                         </td>
 

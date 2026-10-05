@@ -76,7 +76,7 @@
                 </span>
             </div>
             <p class="text-3xl font-black text-slate-900 dark:text-white mt-2 tracking-tight"
-               th:text="${'R$ ' + #numbers.formatDecimal(totalDespesas ?: 0, 1, 2)}">
+               th:text="${'R$ ' + #numbers.formatDecimal(totalDespesas ?: 0, 1, 'POINT', 2, 'COMMA')}">
                 R$ 0,00
             </p>
         </div>
@@ -150,7 +150,7 @@
 
                             <!-- VALOR -->
                             <td class="px-6 py-4 text-right font-extrabold text-rose-600 dark:text-rose-400 tracking-tight"
-                                th:text="${'R$ ' + #numbers.formatDecimal(d.valorTotal ?: 0, 1, 2)}">
+                                th:text="${'R$ ' + #numbers.formatDecimal(d.valorTotal ?: 0, 1, 'POINT', 2, 'COMMA')}">
                                 R$ 0,00
                             </td>
 

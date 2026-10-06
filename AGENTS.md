@@ -29,6 +29,7 @@ O único teste (`FinanceiroApplicationTests.contextLoads`) sobe o contexto compl
 - `application-prod.properties`: lê `DBUrl`, `DBUsername`, `DBPassword` de variáveis de ambiente.
 - Nenhum profile é ativado por padrão — use `SPRING_PROFILES_ACTIVE=dev` ou `prod`.
 - **Não há migrations** (Flyway/Liquibase): o schema é gerado pelo Hibernate (`ddl-auto=update`). Renomear/remover campos de entidade não apaga colunas antigas no banco — trate mudanças de schema com cuidado.
+- Colunas `@Enumerated(STRING)` ganham um `CHECK` com os valores do enum que o `update` nunca atualiza. `config/EnumConstraintsConfig` recria esses CHECKs na subida; ao criar outra coluna enum, registre-a lá.
 - Não adicione novas credenciais em arquivos versionados; use variáveis de ambiente.
 
 ## Estrutura

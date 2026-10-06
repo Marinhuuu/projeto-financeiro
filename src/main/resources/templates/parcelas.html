@@ -72,6 +72,10 @@
     </div>
 
 
+    <!-- CICLO (parcelas das faturas do mês em que o ciclo termina) -->
+    <div th:replace="~{fragments/ciclo :: seletor(url='/parcela', permiteTodos=true)}"></div>
+
+
     <!-- CARDS -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 

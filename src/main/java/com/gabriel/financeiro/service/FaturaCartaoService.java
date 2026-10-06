@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gabriel.financeiro.entities.CartaoCredito;
+import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.Despesa;
 import com.gabriel.financeiro.entities.FaturaCartao;
 import com.gabriel.financeiro.entities.Parcela;
@@ -39,11 +40,21 @@ public class FaturaCartaoService {
     // CONSULTAS
     // =========================================================
 
+    /*
+     * Faturas do mês de referência do ciclo (mês em que ele termina); ciclo null = todas.
+     */
     @Transactional
-    public List<FaturaCartao> listarFaturas() {
+    public List<FaturaCartao> listarFaturas(CicloFinanceiro ciclo) {
 
-        List<FaturaCartao> faturas =
-                faturaRepo.findAllByOrderByAnoReferenciaDescMesReferenciaDesc();
+        List<FaturaCartao> faturas;
+
+        if (ciclo == null) {
+            faturas = faturaRepo.findAllByOrderByAnoReferenciaDescMesReferenciaDesc();
+        } else {
+            YearMonth referencia = YearMonth.from(ciclo.getDataFim());
+            faturas = faturaRepo.findByMesReferenciaAndAnoReferencia(
+                    referencia.getMonthValue(), referencia.getYear());
+        }
 
         atualizarStatus(faturas);
 

@@ -268,12 +268,18 @@
 
     </div>
 
+    <!-- CICLO -->
+    <div class="max-w-4xl mx-auto mb-4">
+        <div th:replace="~{fragments/ciclo :: seletor(url='/despesa', permiteTodos=true)}"></div>
+    </div>
+
     <!-- TABELA -->
     <div class="max-w-4xl mx-auto bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
 
         <div class="flex items-center gap-2.5 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
             <span class="w-2.5 h-2.5 rounded-full bg-rose-600 dark:bg-rose-400"></span>
-            <h2 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+                th:text="${cicloSelecionado != null ? 'Despesas do Ciclo' : 'Todas as Despesas'}">
                 Minhas Despesas
             </h2>
         </div>

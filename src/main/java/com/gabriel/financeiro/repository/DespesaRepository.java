@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -42,6 +44,21 @@ public interface DespesaRepository extends JpaRepository<Despesa, UUID> {
         ORDER BY d.dataCompra DESC
     """)
     List<Despesa> listarDespesasDeTerceiros();
+
+    @Query("""
+        SELECT d
+        FROM Despesa d
+        WHERE d.pessoa IS NOT NULL
+          AND d.dataCompra BETWEEN :inicio AND :fim
+        ORDER BY d.dataCompra DESC
+    """)
+    List<Despesa> listarDespesasDeTerceirosPorPeriodo(LocalDate inicio, LocalDate fim);
+
+    // =========================================================
+    // DESPESAS DO PERÍODO (ciclo selecionado)
+    // =========================================================
+
+    Page<Despesa> findByDataCompraBetween(LocalDate inicio, LocalDate fim, Pageable pageable);
 
     // =========================================================
     // VÍNCULOS (usados antes de excluir cadastros)

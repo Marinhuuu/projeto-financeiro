@@ -13,11 +13,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.gabriel.financeiro.config.CicloSelecionado;
+import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.FaturaCartao;
 import com.gabriel.financeiro.entities.Parcela;
 import com.gabriel.financeiro.enums.StatusFatura;
 import com.gabriel.financeiro.repository.ParcelaRepository;
 import com.gabriel.financeiro.service.FaturaCartaoService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("/faturas")
@@ -25,10 +29,13 @@ public class FaturaCartaoController {
 
     private final FaturaCartaoService faturaService;
     private final ParcelaRepository parcelaRepo;
+    private final CicloSelecionado cicloSelecionado;
 
-    public FaturaCartaoController(FaturaCartaoService faturaService, ParcelaRepository parcelaRepo) {
+    public FaturaCartaoController(FaturaCartaoService faturaService, ParcelaRepository parcelaRepo,
+            CicloSelecionado cicloSelecionado) {
         this.faturaService = faturaService;
         this.parcelaRepo = parcelaRepo;
+        this.cicloSelecionado = cicloSelecionado;
     }
 
     // Status que o sistema calcula para as faturas, na ordem dos filtros da tela
@@ -36,10 +43,14 @@ public class FaturaCartaoController {
             StatusFatura.EM_ABERTO, StatusFatura.FECHADA, StatusFatura.VENCIDA, StatusFatura.PAGA);
 
     @GetMapping
-    public String listarFaturas(@RequestParam(required = false) String status, Model model) {
+    public String listarFaturas(@RequestParam(required = false) String status,
+            @RequestParam(name = CicloSelecionado.PARAMETRO, required = false) String cicloParam,
+            HttpServletRequest request, Model model) {
+
+        CicloFinanceiro ciclo = cicloSelecionado.resolver(cicloParam, request, model);
 
         // O status é recalculado em memória (atualizarStatus), por isso o filtro é feito após listar
-        List<FaturaCartao> todas = faturaService.listarFaturas();
+        List<FaturaCartao> todas = faturaService.listarFaturas(ciclo);
 
         StatusFatura filtro = STATUS_FILTRO.stream()
                 .filter(s -> s.name().equalsIgnoreCase(status))

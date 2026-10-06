@@ -106,6 +106,27 @@ public class CicloFinanceiroService {
         );
     }
 
+    /*
+     * Ciclo cuja referência (mês em que termina) é o mês informado.
+     * Usa o ciclo já gravado quando existe; senão devolve o calculado sem gravar,
+     * para que navegar por meses futuros/passados não crie ciclos no banco.
+     */
+    public CicloFinanceiro getCicloPorReferencia(YearMonth referencia) {
+
+        int diaFechamento =
+                configService.getConfiguracao().getDiaFechamento();
+
+        LocalDate fechamento =
+                ajustarDia(referencia, diaFechamento);
+
+        return cicloRepo
+                .findFirstByDataInicioLessThanEqualAndDataFimGreaterThanEqualOrderByDataInicioDesc(
+                        fechamento,
+                        fechamento
+                )
+                .orElseGet(() -> calcularCiclo(fechamento));
+    }
+
     @Transactional
     public CicloFinanceiro getOuCriarCiclo(LocalDate data) {
 

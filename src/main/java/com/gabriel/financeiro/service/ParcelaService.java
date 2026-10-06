@@ -3,6 +3,7 @@ package com.gabriel.financeiro.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.Parcela;
 import com.gabriel.financeiro.enums.StatusParcela;
 import com.gabriel.financeiro.repository.ParcelaRepository;
@@ -26,29 +28,61 @@ public class ParcelaService {
 		this.faturaService = faturaService;
 	}
 
-	public Page<Parcela> ListParcela(Pageable pageable) {
-		return parcelaRepo.findAll(pageable);
+	// =========================================================
+	// PARCELAS DO CICLO
+	// O ciclo aponta para as faturas do seu mês de referência (mês em que termina).
+	// Em todos os métodos, ciclo null = todas as parcelas.
+	// =========================================================
+
+	public Page<Parcela> listarParcelasDoCiclo(CicloFinanceiro ciclo, Pageable pageable) {
+
+		if (ciclo == null) {
+			return parcelaRepo.findAll(pageable);
+		}
+
+		YearMonth referencia = YearMonth.from(ciclo.getDataFim());
+
+		return parcelaRepo.findByFaturaMesReferenciaAndFaturaAnoReferencia(
+				referencia.getMonthValue(), referencia.getYear(), pageable);
 	}
 
-	public BigDecimal calcularTotalPendente() {
-	    return parcelaRepo.somarPorStatus(StatusParcela.PENDENTE);
+	public BigDecimal calcularTotalPendente(CicloFinanceiro ciclo) {
+	    return somarPorStatus(StatusParcela.PENDENTE, ciclo);
 	}
 
-	public BigDecimal calcularTotalPago() {
-	    return parcelaRepo.somarPorStatus(StatusParcela.PAGA);
+	public BigDecimal calcularTotalPago(CicloFinanceiro ciclo) {
+	    return somarPorStatus(StatusParcela.PAGA, ciclo);
 	}
 
-	public BigDecimal calcularPercentualPago() {
+	public BigDecimal calcularPercentualPago(CicloFinanceiro ciclo) {
 
-	    BigDecimal total = parcelaRepo.somarTodas();
+	    BigDecimal total;
+
+	    if (ciclo == null) {
+	        total = parcelaRepo.somarTodas();
+	    } else {
+	        YearMonth referencia = YearMonth.from(ciclo.getDataFim());
+	        total = parcelaRepo.somarPorMesEAno(referencia.getMonthValue(), referencia.getYear());
+	    }
 
 	    if (total.compareTo(BigDecimal.ZERO) == 0) {
 	        return BigDecimal.ZERO;
 	    }
 
-	    return calcularTotalPago()
+	    return calcularTotalPago(ciclo)
 	            .divide(total, 4, RoundingMode.HALF_UP)
 	            .multiply(BigDecimal.valueOf(100));
+	}
+
+	private BigDecimal somarPorStatus(StatusParcela status, CicloFinanceiro ciclo) {
+
+		if (ciclo == null) {
+			return parcelaRepo.somarPorStatus(status);
+		}
+
+		YearMonth referencia = YearMonth.from(ciclo.getDataFim());
+
+		return parcelaRepo.somarPorStatusEMesEAno(status, referencia.getMonthValue(), referencia.getYear());
 	}
 
 	@Transactional

@@ -1,5 +1,6 @@
 package com.gabriel.financeiro.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.gabriel.financeiro.config.CicloSelecionado;
+import com.gabriel.financeiro.dto.GastoDoCiclo;
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
@@ -134,17 +136,26 @@ public class DespesaController {
 			@RequestParam(name = CicloSelecionado.PARAMETRO, required = false) String cicloParam,
 			HttpServletRequest request, Model model) {
 
-		Pageable pageable = PageRequest.of(page, size, Sort.by("dataCompra").descending());
+		Pageable pageable = PageRequest.of(page, size);
 
 		CicloFinanceiro ciclo = cicloSelecionado.resolver(cicloParam, request, model);
 
-		Page<Despesa> paginaDespesa = despesaServ.listarDespesasDoCiclo(ciclo, pageable);
+		// Gastos consolidados: despesas fora do cartão + parcelas das faturas do ciclo
+		Page<GastoDoCiclo> paginaGastos = despesaServ.listarGastosDoCiclo(ciclo, pageable);
 
-		model.addAttribute("paginaDespesa", paginaDespesa);
+		model.addAttribute("paginaGastos", paginaGastos);
 
 		// Total do ciclo selecionado: despesas fora do cartão + parcelas do cartão
 		model.addAttribute("ciclo", ciclo);
-		model.addAttribute("totalDespesas", ciclo == null ? null : despesaServ.somarDespesasPropriasDoCiclo(ciclo));
+
+		if (ciclo != null) {
+			BigDecimal totalForaCartao = despesaServ.somarDespesasPropriasForaDoCartao(ciclo);
+			BigDecimal totalParcelas = despesaServ.somarParcelasPropriasDoCiclo(ciclo);
+
+			model.addAttribute("totalForaCartao", totalForaCartao);
+			model.addAttribute("totalParcelas", totalParcelas);
+			model.addAttribute("totalDespesas", totalForaCartao.add(totalParcelas));
+		}
 
 		return "despesas";
 	}

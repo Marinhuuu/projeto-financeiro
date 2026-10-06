@@ -37,6 +37,8 @@ public interface ParcelaRepository extends JpaRepository<Parcela, UUID> {
 
     Page<Parcela> findByFaturaMesReferenciaAndFaturaAnoReferencia(Integer mes, Integer ano, Pageable pageable);
 
+    List<Parcela> findByFaturaMesReferenciaAndFaturaAnoReferencia(Integer mes, Integer ano);
+
     @Query("""
         SELECT COALESCE(SUM(p.valorParcela), 0)
         FROM Parcela p

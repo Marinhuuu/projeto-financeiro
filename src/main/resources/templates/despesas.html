@@ -87,8 +87,20 @@
                 R$ 0,00
             </p>
             <span class="text-xs text-slate-400 dark:text-slate-500 mt-2" th:if="${ciclo != null}"
-                  th:text="${'Ciclo ' + #temporals.format(ciclo.dataInicio, 'dd/MM') + ' a ' + #temporals.format(ciclo.dataFim, 'dd/MM/yyyy') + ' · cartão + PIX, débito e dinheiro'}">
+                  th:text="${'Ciclo ' + #temporals.format(ciclo.dataInicio, 'dd/MM') + ' a ' + #temporals.format(ciclo.dataFim, 'dd/MM/yyyy') + ' · somente seus gastos (sem terceiros)'}">
             </span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                <div class="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                    <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-400">PIX, débito e dinheiro</span>
+                    <p class="text-lg font-extrabold text-slate-800 dark:text-slate-100 tracking-tight"
+                       th:text="${'R$ ' + #numbers.formatDecimal(totalForaCartao ?: 0, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</p>
+                </div>
+                <div class="px-4 py-3 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40">
+                    <span class="text-[11px] uppercase font-bold tracking-wider text-amber-600 dark:text-amber-400">Parcelas do cartão (faturas do ciclo)</span>
+                    <p class="text-lg font-extrabold text-slate-800 dark:text-slate-100 tracking-tight"
+                       th:text="${'R$ ' + #numbers.formatDecimal(totalParcelas ?: 0, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</p>
+                </div>
+            </div>
         </div>
 
         <!-- LISTAGEM -->
@@ -96,12 +108,15 @@
             <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
                 <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                    <span th:text="${ciclo != null ? 'Despesas do Ciclo' : 'Todas as Despesas'}">Minhas Despesas</span>
+                    <span th:text="${ciclo != null ? 'Gastos do Ciclo' : 'Todos os Gastos'}">Gastos do Ciclo</span>
                 </h3>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                    Compras no cartão aparecem pelas parcelas da fatura; as demais, pela data da compra.
+                </p>
             </div>
 
             <!-- TABELA -->
-            <div th:if="${paginaDespesa != null and !paginaDespesa.content.isEmpty()}"
+            <div th:if="${paginaGastos != null and !paginaGastos.content.isEmpty()}"
                  class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -128,7 +143,8 @@
                     </thead>
 
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-                        <tr th:each="d : ${paginaDespesa.content}"
+                        <tr th:each="g : ${paginaGastos.content}"
+                            th:with="d=${g.despesa}"
                             class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition duration-150">
 
                             <!-- DESCRIÇÃO -->
@@ -138,6 +154,19 @@
                                       class="ml-1.5 inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-full bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/40 whitespace-nowrap"
                                       th:text="${'↻ ' + d.ocorrencia + '/' + d.totalOcorrencias}"
                                       title="Despesa recorrente">↻ 1/12</span>
+                                <span th:if="${g.deParcela}"
+                                      class="ml-1.5 inline-flex items-center px-2 py-0.5 text-[11px] font-bold rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 whitespace-nowrap"
+                                      th:text="${'Parcela ' + g.parcela.qtdParcela + '/' + d.qtdParcelas}"
+                                      title="Parcela do cartão">Parcela 1/3</span>
+                                <span th:if="${d.pessoa != null}"
+                                      class="ml-1.5 inline-flex items-center px-2 py-0.5 text-[11px] font-bold rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/40 whitespace-nowrap"
+                                      th:text="${d.pessoa.nome}"
+                                      title="Gasto de terceiro">Fulano</span>
+                                <span th:if="${g.deParcela and d.cartao != null}"
+                                      class="block text-xs font-medium text-slate-400 dark:text-slate-500 mt-0.5"
+                                      th:text="${d.cartao.nome + ' · total R$ ' + #numbers.formatDecimal(d.valorTotal ?: 0, 1, 'POINT', 2, 'COMMA')}">
+                                    Nubank · total R$ 300,00
+                                </span>
                             </td>
 
                             <!-- CATEGORIA -->
@@ -163,7 +192,7 @@
 
                             <!-- VALOR -->
                             <td class="px-6 py-4 text-right font-extrabold text-rose-600 dark:text-rose-400 tracking-tight"
-                                th:text="${'R$ ' + #numbers.formatDecimal(d.valorTotal ?: 0, 1, 'POINT', 2, 'COMMA')}">
+                                th:text="${'R$ ' + #numbers.formatDecimal(g.valor ?: 0, 1, 'POINT', 2, 'COMMA')}">
                                 R$ 0,00
                             </td>
 
@@ -189,7 +218,8 @@
                                            name="id"
                                            th:value="${d.id}">
                                     <button type="submit"
-                                            onclick="return confirm('Deseja realmente excluir esta despesa?')"
+                                            th:data-confirmacao="${g.deParcela ? 'Excluir a despesa inteira, com todas as parcelas?' : 'Deseja realmente excluir esta despesa?'}"
+                                            onclick="return confirm(this.dataset.confirmacao)"
                                             class="inline-flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 px-3 py-1.5 rounded-lg text-xs font-bold transition">
                                         Excluir
                                     </button>
@@ -201,13 +231,13 @@
             </div>
 
             <!-- SEM DESPESAS -->
-            <div th:if="${paginaDespesa == null or paginaDespesa.content.isEmpty()}"
+            <div th:if="${paginaGastos == null or paginaGastos.content.isEmpty()}"
                  class="text-center py-12 bg-slate-50/50 dark:bg-slate-800/30 m-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
                 <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner">
                     💸
                 </div>
                 <p class="text-slate-700 dark:text-slate-300 font-bold text-base"
-                   th:text="${ciclo != null ? 'Nenhuma despesa neste ciclo.' : 'Nenhuma despesa encontrada.'}">
+                   th:text="${ciclo != null ? 'Nenhum gasto neste ciclo.' : 'Nenhum gasto encontrado.'}">
                     Nenhuma despesa encontrada.
                 </p>
                 <p class="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-xs mx-auto">
@@ -217,22 +247,22 @@
         </div>
 
         <!-- PAGINAÇÃO -->
-        <div th:if="${paginaDespesa != null and paginaDespesa.totalPages > 0}"
+        <div th:if="${paginaGastos != null and paginaGastos.totalPages > 0}"
              class="flex justify-between items-center">
             <span class="text-xs font-medium text-slate-400 dark:text-slate-400"
-                  th:text="${'Página ' + (paginaDespesa.number + 1) + ' de ' + paginaDespesa.totalPages}">
+                  th:text="${'Página ' + (paginaGastos.number + 1) + ' de ' + paginaGastos.totalPages}">
                 Página 1 de 1
             </span>
 
             <div class="flex gap-2">
-                <a th:if="${paginaDespesa.hasPrevious()}"
-                   th:href="@{/despesa/despesas(page=${paginaDespesa.number - 1},size=${paginaDespesa.size})}"
+                <a th:if="${paginaGastos.hasPrevious()}"
+                   th:href="@{/despesa/despesas(page=${paginaGastos.number - 1},size=${paginaGastos.size})}"
                    class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700">
                     ← Anterior
                 </a>
 
-                <a th:if="${paginaDespesa.hasNext()}"
-                   th:href="@{/despesa/despesas(page=${paginaDespesa.number + 1},size=${paginaDespesa.size})}"
+                <a th:if="${paginaGastos.hasNext()}"
+                   th:href="@{/despesa/despesas(page=${paginaGastos.number + 1},size=${paginaGastos.size})}"
                    class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700">
                     Próxima →
                 </a>

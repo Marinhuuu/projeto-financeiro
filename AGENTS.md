@@ -41,6 +41,7 @@ src/main/java/com/gabriel/financeiro/
   service/      regras de negócio
   repository/   interfaces JpaRepository (JPQL com text blocks """ ... """)
   entities/     entidades JPA
+  dto/          objetos de tela que não são entidades (ex.: GastoDoCiclo)
   enums/        StatusFatura, StatusParcela
 src/main/resources/
   templates/            páginas Thymeleaf (uma por tela)
@@ -71,6 +72,7 @@ Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceir
 - **Compra após o dia de fechamento** do cartão cai na fatura do mês seguinte. Dias de fechamento maiores que o mês são ajustados para o último dia.
 - **Excluir despesa** apaga as parcelas antes da despesa e sincroniza as faturas afetadas (fatura sem parcelas é removida). Qualquer operação que altere parcelas deve chamar `faturaService.sincronizar(fatura)`. Alterar fechamento/vencimento do cartão chama `recalcularFaturasDoCartao`.
 - **Ciclo selecionado** (`config/CicloSelecionado`): as telas de listagem (home, despesas, terceiros, receitas, parcelas, faturas) filtram pelo ciclo escolhido no parâmetro `ciclo` (`yyyy-MM` = mês em que o ciclo termina, `atual` ou `todos`), guardado na sessão; padrão = ciclo atual. Despesas/receitas filtram pela data no intervalo do ciclo; parcelas/faturas pelo mês de referência. Em tela nova, chame `cicloSelecionado.resolver(...)` e inclua `~{fragments/ciclo :: seletor(url='/rota', permiteTodos=true)}`.
+- **Gastos do ciclo** (`/despesa/despesas`, `DespesaService.listarGastosDoCiclo`): listagem consolidada de `GastoDoCiclo` = despesas sem parcelas com data no ciclo + parcelas das faturas do mês de referência do ciclo. Compras no cartão entram só pelas parcelas (nunca pelo valor total), para que a lista bata com o total do ciclo. Ordenação/paginação em memória (`PageImpl`).
 - Totais "meus" vs. "terceiros" em `ParcelaRepository` filtram por `despesa.pessoa IS NULL / IS NOT NULL` e `devolvido = false`.
 
 ## Autenticação

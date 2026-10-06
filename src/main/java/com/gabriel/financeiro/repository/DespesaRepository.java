@@ -61,6 +61,25 @@ public interface DespesaRepository extends JpaRepository<Despesa, UUID> {
     Page<Despesa> findByDataCompraBetween(LocalDate inicio, LocalDate fim, Pageable pageable);
 
     // =========================================================
+    // DESPESAS FORA DO CARTÃO (sem parcelas) — gastos do ciclo
+    // =========================================================
+
+    @Query("""
+        SELECT d
+        FROM Despesa d
+        WHERE NOT EXISTS (SELECT 1 FROM Parcela p WHERE p.despesa = d)
+          AND d.dataCompra BETWEEN :inicio AND :fim
+    """)
+    List<Despesa> listarDespesasSemParcelasPorPeriodo(LocalDate inicio, LocalDate fim);
+
+    @Query("""
+        SELECT d
+        FROM Despesa d
+        WHERE NOT EXISTS (SELECT 1 FROM Parcela p WHERE p.despesa = d)
+    """)
+    List<Despesa> listarDespesasSemParcelas();
+
+    // =========================================================
     // VÍNCULOS (usados antes de excluir cadastros)
     // =========================================================
 

@@ -3,16 +3,20 @@ package com.gabriel.financeiro.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gabriel.financeiro.dto.GastoDoCiclo;
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
@@ -69,6 +73,40 @@ public class DespesaService {
 		}
 
 		return despesaRepo.findByDataCompraBetween(ciclo.getDataInicio(), ciclo.getDataFim(), pageable);
+	}
+
+	/*
+	 * Todos os gastos do ciclo numa só listagem: despesas fora do cartão com data
+	 * de compra no ciclo + parcelas das faturas do mês de referência do ciclo.
+	 * Compras no cartão entram só pelas parcelas. Ciclo null = todos os gastos.
+	 */
+	public Page<GastoDoCiclo> listarGastosDoCiclo(CicloFinanceiro ciclo, Pageable pageable) {
+
+		List<Despesa> despesas;
+		List<Parcela> parcelas;
+
+		if (ciclo == null) {
+			despesas = despesaRepo.listarDespesasSemParcelas();
+			parcelas = parcelaRepo.findAll();
+		} else {
+			YearMonth referencia = YearMonth.from(ciclo.getDataFim());
+			despesas = despesaRepo.listarDespesasSemParcelasPorPeriodo(ciclo.getDataInicio(), ciclo.getDataFim());
+			parcelas = parcelaRepo.findByFaturaMesReferenciaAndFaturaAnoReferencia(referencia.getMonthValue(),
+					referencia.getYear());
+		}
+
+		List<GastoDoCiclo> gastos = new ArrayList<>();
+		despesas.forEach(d -> gastos.add(GastoDoCiclo.deDespesa(d)));
+		parcelas.forEach(p -> gastos.add(GastoDoCiclo.deParcela(p)));
+
+		gastos.sort(Comparator.comparing(GastoDoCiclo::getData, Comparator.nullsLast(Comparator.reverseOrder()))
+				.thenComparing(g -> g.getDespesa().getDescricao(), Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+				.thenComparing(GastoDoCiclo::getNumeroParcela, Comparator.nullsFirst(Comparator.naturalOrder())));
+
+		int inicio = (int) Math.min(pageable.getOffset(), gastos.size());
+		int fim = Math.min(inicio + pageable.getPageSize(), gastos.size());
+
+		return new PageImpl<>(gastos.subList(inicio, fim), pageable, gastos.size());
 	}
 
 	// =========================================================

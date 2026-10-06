@@ -294,7 +294,9 @@
 
 
 					<span class="text-xs text-slate-400 mt-2">
-						Gastos que pertencem a você
+						Cartão + fora do cartão:
+						<span th:text="${'R$ ' + #numbers.formatDecimal(totalDespesasForaCartao ?: 0, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+						sem cartão
 					</span>
 
 				</div>

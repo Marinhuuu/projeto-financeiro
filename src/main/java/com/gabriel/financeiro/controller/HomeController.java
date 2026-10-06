@@ -73,13 +73,16 @@ public class HomeController {
 		// DESPESAS PROPRIAS FORA DO CARTAO (pessoa == null)
 		// =========================================================
 
-		BigDecimal totalDespesasProprias = despesaRepo.somarDespesasPessoaisNaoCartaoPorPeriodo(inicioCiclo, fimCiclo);
+		BigDecimal totalDespesasForaCartao = despesaRepo.somarDespesasPessoaisNaoCartaoPorPeriodo(inicioCiclo, fimCiclo);
 
 		// =========================================================
 		// MINHAS PARCELAS NAS FATURAS DO MES DE REFERENCIA
 		// =========================================================
 
 		BigDecimal totalParcelasProprias = parcelaRepo.somarParcelasPropriasPorMesEAno(mesAtual, anoAtual);
+
+		// Minhas despesas do mes: fora do cartao (PIX, debito, dinheiro...) + parcelas do cartao
+		BigDecimal totalDespesasProprias = totalDespesasForaCartao.add(totalParcelasProprias);
 
 		long quantidadeParcelasProprias = parcelaRepo.contarParcelasPropriasPorMesEAno(mesAtual, anoAtual);
 
@@ -100,7 +103,7 @@ public class HomeController {
 		// =========================================================
 
 		// Total de saidas do proprio usuario: despesas fora do cartao + parcelas proprias
-		BigDecimal totalGastosPropriosMes = totalDespesasProprias.add(totalParcelasProprias);
+		BigDecimal totalGastosPropriosMes = totalDespesasProprias;
 
 		// Saldo estimado = Receitas - Gastos proprios
 		BigDecimal saldoMes = totalReceitas.subtract(totalGastosPropriosMes);
@@ -118,6 +121,7 @@ public class HomeController {
 		model.addAttribute("ciclo", ciclo);
 		model.addAttribute("totalReceitas", totalReceitas);
 		model.addAttribute("totalDespesasProprias", totalDespesasProprias);
+		model.addAttribute("totalDespesasForaCartao", totalDespesasForaCartao);
 
 		// Parcelas do mes
 		model.addAttribute("totalParcelasProprias", totalParcelasProprias);

@@ -17,14 +17,15 @@ public interface DespesaRepository extends JpaRepository<Despesa, UUID> {
 
     // =========================================================
     // TOTAL DE DESPESAS PESSOAIS FORA DO CARTÃO NO PERÍODO
-    // Pessoa = null
+    // Pessoa = null. "Fora do cartão" = despesa sem parcelas (as do cartão
+    // entram pelas parcelas da fatura do mês, não pela data da compra).
     // =========================================================
 
     @Query("""
         SELECT COALESCE(SUM(d.valorTotal), 0)
         FROM Despesa d
         WHERE d.pessoa IS NULL
-          AND d.cartao IS NULL
+          AND NOT EXISTS (SELECT 1 FROM Parcela p WHERE p.despesa = d)
           AND d.dataCompra BETWEEN :inicio AND :fim
     """)
     BigDecimal somarDespesasPessoaisNaoCartaoPorPeriodo(LocalDate inicio, LocalDate fim);

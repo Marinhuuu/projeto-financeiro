@@ -17,10 +17,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.entities.Categoria;
+import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.Despesa;
 import com.gabriel.financeiro.entities.FormaPagamento;
 import com.gabriel.financeiro.service.CartaoService;
 import com.gabriel.financeiro.service.CategoriaService;
+import com.gabriel.financeiro.service.CicloFinanceiroService;
 import com.gabriel.financeiro.service.DespesaService;
 import com.gabriel.financeiro.service.FormaPagamentoService;
 import com.gabriel.financeiro.service.PessoaService;
@@ -34,15 +36,17 @@ public class DespesaController {
 	private final CartaoService cartaoServ;
 	private final PessoaService pessoaServ;
 	private final FormaPagamentoService formaPagamentoServ;
+	private final CicloFinanceiroService cicloServ;
 
 	public DespesaController(DespesaService despesaServ, CategoriaService categoriaServ, CartaoService cartaoServ,
-			PessoaService pessoaServ, FormaPagamentoService formaPagamentoServ) {
+			PessoaService pessoaServ, FormaPagamentoService formaPagamentoServ, CicloFinanceiroService cicloServ) {
 
 		this.despesaServ = despesaServ;
 		this.categoriaServ = categoriaServ;
 		this.cartaoServ = cartaoServ;
 		this.pessoaServ = pessoaServ;
 		this.formaPagamentoServ = formaPagamentoServ;
+		this.cicloServ = cicloServ;
 	}
 
 	// =========================================================
@@ -128,6 +132,12 @@ public class DespesaController {
 		Page<Despesa> paginaDespesa = despesaServ.ListDespesa(pageable);
 
 		model.addAttribute("paginaDespesa", paginaDespesa);
+
+		// Total do mês (ciclo atual): despesas fora do cartão + parcelas do cartão
+		CicloFinanceiro ciclo = cicloServ.getCicloAtual();
+
+		model.addAttribute("ciclo", ciclo);
+		model.addAttribute("totalDespesas", despesaServ.somarDespesasPropriasDoCiclo(ciclo));
 
 		return "despesas";
 	}

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.entities.Categoria;
+import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.Despesa;
 import com.gabriel.financeiro.entities.FaturaCartao;
 import com.gabriel.financeiro.entities.Parcela;
@@ -60,6 +61,32 @@ public class DespesaService {
 
 	public Page<Despesa> ListDespesa(Pageable pageable) {
 		return despesaRepo.findAll(pageable);
+	}
+
+	// =========================================================
+	// TOTAIS DO CICLO (despesas próprias: pessoa == null)
+	// =========================================================
+
+	/*
+	 * Despesas fora do cartão (PIX, débito, dinheiro...) com data de compra no ciclo.
+	 */
+	public BigDecimal somarDespesasPropriasForaDoCartao(CicloFinanceiro ciclo) {
+		return despesaRepo.somarDespesasPessoaisNaoCartaoPorPeriodo(ciclo.getDataInicio(), ciclo.getDataFim());
+	}
+
+	/*
+	 * Parcelas próprias nas faturas do mês de referência do ciclo (mês em que ele termina).
+	 */
+	public BigDecimal somarParcelasPropriasDoCiclo(CicloFinanceiro ciclo) {
+		YearMonth referencia = YearMonth.from(ciclo.getDataFim());
+		return parcelaRepo.somarParcelasPropriasPorMesEAno(referencia.getMonthValue(), referencia.getYear());
+	}
+
+	/*
+	 * Total gasto no mês: despesas fora do cartão + parcelas do cartão.
+	 */
+	public BigDecimal somarDespesasPropriasDoCiclo(CicloFinanceiro ciclo) {
+		return somarDespesasPropriasForaDoCartao(ciclo).add(somarParcelasPropriasDoCiclo(ciclo));
 	}
 
 	// =========================================================

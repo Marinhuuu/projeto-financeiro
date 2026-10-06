@@ -75,13 +75,16 @@
             <div class="absolute top-0 left-0 w-1.5 h-full bg-rose-500 rounded-l"></div>
             <div class="flex items-center justify-between text-slate-400 dark:text-slate-400 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition">
                 <span class="text-xs uppercase font-bold tracking-wider text-slate-400 dark:text-slate-400">
-                    Total de Despesas
+                    Total de Despesas do Mês
                 </span>
             </div>
             <p class="text-3xl font-black text-slate-900 dark:text-white mt-2 tracking-tight"
                th:text="${'R$ ' + #numbers.formatDecimal(totalDespesas ?: 0, 1, 'POINT', 2, 'COMMA')}">
                 R$ 0,00
             </p>
+            <span class="text-xs text-slate-400 dark:text-slate-500 mt-2" th:if="${ciclo != null}"
+                  th:text="${'Ciclo ' + #temporals.format(ciclo.dataInicio, 'dd/MM') + ' a ' + #temporals.format(ciclo.dataFim, 'dd/MM/yyyy') + ' · cartão + PIX, débito e dinheiro'}">
+            </span>
         </div>
 
         <!-- LISTAGEM -->

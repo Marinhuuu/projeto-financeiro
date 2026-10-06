@@ -74,7 +74,7 @@
                 </h2>
 
                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                    Consulte suas receitas por mês.
+                    Consulte suas receitas por ciclo.
                 </p>
 
             </div>
@@ -103,107 +103,9 @@
         </div>
 
 
-        <!-- FILTRO -->
+        <!-- CICLO -->
 
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
-
-            <form method="get"
-                  th:action="@{/receita/receitas}"
-                  class="flex flex-wrap items-end gap-4">
-
-
-                <!-- MÊS -->
-
-                <div class="flex-1 min-w-[160px]">
-
-                    <label class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
-                        Mês
-                    </label>
-
-                    <select name="mes"
-                            class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white dark:focus:bg-slate-700 transition duration-150">
-
-                        <option value="1" th:selected="${mesSelecionado == 1}">
-                            Janeiro
-                        </option>
-
-                        <option value="2" th:selected="${mesSelecionado == 2}">
-                            Fevereiro
-                        </option>
-
-                        <option value="3" th:selected="${mesSelecionado == 3}">
-                            Março
-                        </option>
-
-                        <option value="4" th:selected="${mesSelecionado == 4}">
-                            Abril
-                        </option>
-
-                        <option value="5" th:selected="${mesSelecionado == 5}">
-                            Maio
-                        </option>
-
-                        <option value="6" th:selected="${mesSelecionado == 6}">
-                            Junho
-                        </option>
-
-                        <option value="7" th:selected="${mesSelecionado == 7}">
-                            Julho
-                        </option>
-
-                        <option value="8" th:selected="${mesSelecionado == 8}">
-                            Agosto
-                        </option>
-
-                        <option value="9" th:selected="${mesSelecionado == 9}">
-                            Setembro
-                        </option>
-
-                        <option value="10" th:selected="${mesSelecionado == 10}">
-                            Outubro
-                        </option>
-
-                        <option value="11" th:selected="${mesSelecionado == 11}">
-                            Novembro
-                        </option>
-
-                        <option value="12" th:selected="${mesSelecionado == 12}">
-                            Dezembro
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <!-- ANO -->
-
-                <div>
-
-                    <label class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
-                        Ano
-                    </label>
-
-                    <input type="number"
-                           name="ano"
-                           th:value="${anoSelecionado}"
-                           class="border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 w-28 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white dark:focus:bg-slate-700 transition duration-150">
-
-                </div>
-
-
-                <!-- BOTÃO -->
-
-                <button type="submit"
-                        class="px-5 py-2 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white active:bg-slate-950 text-white dark:text-slate-900 rounded-xl font-bold text-sm shadow-sm transition duration-150 h-[38px] flex items-center justify-center gap-2">
-
-                    Filtrar
-
-                </button>
-
-            </form>
-
-        </div>
+        <div th:replace="~{fragments/ciclo :: seletor(url='/receita/receitas', permiteTodos=true)}"></div>
 
 
         <!-- RESUMO -->
@@ -241,32 +143,7 @@
 
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
 
-                    <span>Receitas de</span>
-
-                    <span class="text-emerald-700 dark:text-emerald-400 font-extrabold"
-                          th:switch="${mesSelecionado}">
-
-                        <span th:case="1">Janeiro</span>
-                        <span th:case="2">Fevereiro</span>
-                        <span th:case="3">Março</span>
-                        <span th:case="4">Abril</span>
-                        <span th:case="5">Maio</span>
-                        <span th:case="6">Junho</span>
-                        <span th:case="7">Julho</span>
-                        <span th:case="8">Agosto</span>
-                        <span th:case="9">Setembro</span>
-                        <span th:case="10">Outubro</span>
-                        <span th:case="11">Novembro</span>
-                        <span th:case="12">Dezembro</span>
-
-                    </span>
-
-                    <span class="text-slate-500 dark:text-slate-400"
-                          th:text="${anoSelecionado}">
-
-                        2026
-
-                    </span>
+                    <span th:text="${cicloSelecionado != null ? 'Receitas do Ciclo' : 'Todas as Receitas'}">Receitas do Ciclo</span>
 
                 </h3>
 

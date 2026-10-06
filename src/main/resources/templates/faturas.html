@@ -71,6 +71,10 @@
         </div>
 
 
+        <!-- CICLO (faturas do mês em que o ciclo termina) -->
+        <div th:replace="~{fragments/ciclo :: seletor(url='/faturas', permiteTodos=true)}"></div>
+
+
         <!-- FILTRO POR STATUS -->
         <div class="flex flex-wrap gap-2">
             <a th:href="@{/faturas}"
@@ -200,7 +204,7 @@
             </div>
 
             <p class="text-sm font-semibold text-slate-600 dark:text-slate-300"
-               th:text="${filtroStatus == null} ? 'Nenhuma fatura cadastrada.' : ${'Nenhuma fatura com status ' + filtroStatus.descricao + '.'}">
+               th:text="${filtroStatus == null} ? (${cicloTodos} ? 'Nenhuma fatura cadastrada.' : 'Nenhuma fatura neste ciclo.') : ${'Nenhuma fatura com status ' + filtroStatus.descricao + '.'}">
                 Nenhuma fatura cadastrada.
             </p>
 

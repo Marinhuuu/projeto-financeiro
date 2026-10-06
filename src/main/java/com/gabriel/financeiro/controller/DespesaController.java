@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.CicloSelecionado;
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
@@ -22,8 +23,9 @@ import com.gabriel.financeiro.entities.Despesa;
 import com.gabriel.financeiro.entities.FormaPagamento;
 import com.gabriel.financeiro.service.CartaoService;
 import com.gabriel.financeiro.service.CategoriaService;
-import com.gabriel.financeiro.service.CicloFinanceiroService;
 import com.gabriel.financeiro.service.DespesaService;
+
+import jakarta.servlet.http.HttpServletRequest;
 import com.gabriel.financeiro.service.FormaPagamentoService;
 import com.gabriel.financeiro.service.PessoaService;
 
@@ -36,17 +38,17 @@ public class DespesaController {
 	private final CartaoService cartaoServ;
 	private final PessoaService pessoaServ;
 	private final FormaPagamentoService formaPagamentoServ;
-	private final CicloFinanceiroService cicloServ;
+	private final CicloSelecionado cicloSelecionado;
 
 	public DespesaController(DespesaService despesaServ, CategoriaService categoriaServ, CartaoService cartaoServ,
-			PessoaService pessoaServ, FormaPagamentoService formaPagamentoServ, CicloFinanceiroService cicloServ) {
+			PessoaService pessoaServ, FormaPagamentoService formaPagamentoServ, CicloSelecionado cicloSelecionado) {
 
 		this.despesaServ = despesaServ;
 		this.categoriaServ = categoriaServ;
 		this.cartaoServ = cartaoServ;
 		this.pessoaServ = pessoaServ;
 		this.formaPagamentoServ = formaPagamentoServ;
-		this.cicloServ = cicloServ;
+		this.cicloSelecionado = cicloSelecionado;
 	}
 
 	// =========================================================
@@ -55,11 +57,14 @@ public class DespesaController {
 
 	@GetMapping
 	public String pageDespesa(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
-			Model model) {
+			@RequestParam(name = CicloSelecionado.PARAMETRO, required = false) String cicloParam,
+			HttpServletRequest request, Model model) {
 
-		Pageable pageable = PageRequest.of(page, size, Sort.by("descricao").ascending());
+		Pageable pageable = PageRequest.of(page, size, Sort.by("dataCompra").descending());
 
-		Page<Despesa> paginaDespesa = despesaServ.ListDespesa(pageable);
+		CicloFinanceiro ciclo = cicloSelecionado.resolver(cicloParam, request, model);
+
+		Page<Despesa> paginaDespesa = despesaServ.listarDespesasDoCiclo(ciclo, pageable);
 
 		Despesa despesa = new Despesa();
 		despesa.setCategoria(new Categoria());
@@ -125,19 +130,21 @@ public class DespesaController {
 
 	@GetMapping("/despesas")
 	public String gerenciarDespesas(@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int size, Model model) {
+			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(name = CicloSelecionado.PARAMETRO, required = false) String cicloParam,
+			HttpServletRequest request, Model model) {
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("dataCompra").descending());
 
-		Page<Despesa> paginaDespesa = despesaServ.ListDespesa(pageable);
+		CicloFinanceiro ciclo = cicloSelecionado.resolver(cicloParam, request, model);
+
+		Page<Despesa> paginaDespesa = despesaServ.listarDespesasDoCiclo(ciclo, pageable);
 
 		model.addAttribute("paginaDespesa", paginaDespesa);
 
-		// Total do mês (ciclo atual): despesas fora do cartão + parcelas do cartão
-		CicloFinanceiro ciclo = cicloServ.getCicloAtual();
-
+		// Total do ciclo selecionado: despesas fora do cartão + parcelas do cartão
 		model.addAttribute("ciclo", ciclo);
-		model.addAttribute("totalDespesas", despesaServ.somarDespesasPropriasDoCiclo(ciclo));
+		model.addAttribute("totalDespesas", ciclo == null ? null : despesaServ.somarDespesasPropriasDoCiclo(ciclo));
 
 		return "despesas";
 	}
@@ -178,9 +185,12 @@ public class DespesaController {
 	// =========================================================
 
 	@GetMapping("/terceiros")
-	public String gastosDeTerceiros(Model model) {
+	public String gastosDeTerceiros(@RequestParam(name = CicloSelecionado.PARAMETRO, required = false) String cicloParam,
+			HttpServletRequest request, Model model) {
 
-		List<Despesa> despesasTerceiros = despesaServ.listarDespesasDeTerceiros();
+		CicloFinanceiro ciclo = cicloSelecionado.resolver(cicloParam, request, model);
+
+		List<Despesa> despesasTerceiros = despesaServ.listarDespesasDeTerceiros(ciclo);
 
 		model.addAttribute("despesasTerceiros", despesasTerceiros);
 

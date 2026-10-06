@@ -76,12 +76,16 @@ public class ReceitaService {
 		return receitaRepo.save(receita);
 	}
 
-	public List<Receita> buscarPorMesEAno(Integer mes, Integer ano) {
+	/*
+	 * Receitas com data de entrada no ciclo; ciclo null = todas.
+	 */
+	public List<Receita> listarReceitasDoCiclo(CicloFinanceiro ciclo) {
 
-	    LocalDate inicio = LocalDate.of(ano, mes, 1);
-	    LocalDate fim = inicio.withDayOfMonth(inicio.lengthOfMonth());
+		if (ciclo == null) {
+			return receitaRepo.findAllByOrderByDataEntradaDesc();
+		}
 
-	    return receitaRepo.findByDataEntradaBetween(inicio, fim);
+		return receitaRepo.findByDataEntradaBetweenOrderByDataEntradaDesc(ciclo.getDataInicio(), ciclo.getDataFim());
 	}
 
 	public void excluirReceita(UUID id) {

@@ -1,7 +1,6 @@
 package com.gabriel.financeiro.controller;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,10 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.CicloSelecionado;
 import com.gabriel.financeiro.entities.Categoria;
+import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.Receita;
 import com.gabriel.financeiro.service.CategoriaService;
 import com.gabriel.financeiro.service.ReceitaService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("/receita")
@@ -28,13 +31,16 @@ public class ReceitaController {
 
     private final ReceitaService receitaServ;
     private final CategoriaService categoriaServ;
+    private final CicloSelecionado cicloSelecionado;
 
     public ReceitaController(
             ReceitaService receitaServ,
-            CategoriaService categoriaServ) {
+            CategoriaService categoriaServ,
+            CicloSelecionado cicloSelecionado) {
 
         this.receitaServ = receitaServ;
         this.categoriaServ = categoriaServ;
+        this.cicloSelecionado = cicloSelecionado;
     }
 
     // ==========================================
@@ -104,23 +110,15 @@ public class ReceitaController {
 
     @GetMapping("/receitas")
     public String listarReceitas(
-            @RequestParam(required = false) Integer mes,
-            @RequestParam(required = false) Integer ano,
+            @RequestParam(name = CicloSelecionado.PARAMETRO, required = false) String cicloParam,
+            HttpServletRequest request,
             Model model) {
 
-        LocalDate hoje = LocalDate.now();
-
-        // Mes/ano ausentes ou invalidos voltam para o mes atual
-        if (mes == null || mes < 1 || mes > 12) {
-            mes = hoje.getMonthValue();
-        }
-
-        if (ano == null || ano < 1900 || ano > 9999) {
-            ano = hoje.getYear();
-        }
+        CicloFinanceiro ciclo =
+                cicloSelecionado.resolver(cicloParam, request, model);
 
         List<Receita> receitas =
-                receitaServ.buscarPorMesEAno(mes, ano);
+                receitaServ.listarReceitasDoCiclo(ciclo);
 
         // Soma
         BigDecimal total =
@@ -134,8 +132,6 @@ public class ReceitaController {
 
         model.addAttribute("receitas", receitas);
         model.addAttribute("total", total);
-        model.addAttribute("mesSelecionado", mes);
-        model.addAttribute("anoSelecionado", ano);
 
         return "receitas";
     }

@@ -8,7 +8,9 @@ import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import com.gabriel.financeiro.config.CicloSelecionado;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.FaturaCartao;
 import com.gabriel.financeiro.enums.StatusFatura;
@@ -19,6 +21,8 @@ import com.gabriel.financeiro.repository.ReceitaRepository;
 import com.gabriel.financeiro.service.CicloFinanceiroService;
 import com.gabriel.financeiro.service.FaturaCartaoService;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @Controller
 public class HomeController {
 
@@ -28,11 +32,13 @@ public class HomeController {
 	private final DespesaRepository despesaRepo;
 	private final ParcelaRepository parcelaRepo;
 	private final FaturaCartaoRepository faturaRepo;
+	private final CicloSelecionado cicloSelecionado;
 
 	public HomeController(CicloFinanceiroService cicloFinanceiroService, FaturaCartaoService faturaService,
 			ReceitaRepository receitaRepo, DespesaRepository despesaRepo, ParcelaRepository parcelaRepo,
-			FaturaCartaoRepository faturaRepo) {
+			FaturaCartaoRepository faturaRepo, CicloSelecionado cicloSelecionado) {
 
+		this.cicloSelecionado = cicloSelecionado;
 		this.cicloFinanceiroService = cicloFinanceiroService;
 		this.faturaService = faturaService;
 		this.receitaRepo = receitaRepo;
@@ -47,12 +53,21 @@ public class HomeController {
 	}
 
 	@GetMapping("/home")
-	public String home(Model model) {
+	public String home(@RequestParam(name = CicloSelecionado.PARAMETRO, required = false) String cicloParam,
+			HttpServletRequest request, Model model) {
 
-		// O período da home é o ciclo financeiro atual, que segue o dia de
-		// fechamento da ConfiguracaoFinanceira. O mês de referência das faturas
-		// é o mês em que o ciclo termina.
-		CicloFinanceiro ciclo = cicloFinanceiroService.getCicloAtual();
+		// O período da home é o ciclo financeiro selecionado (padrão: o atual), que
+		// segue o dia de fechamento da ConfiguracaoFinanceira. O mês de referência
+		// das faturas é o mês em que o ciclo termina.
+		CicloFinanceiro ciclo = cicloSelecionado.resolver(cicloParam, request, model);
+
+		// O painel é sempre de um ciclo: "todos" exibe o ciclo atual
+		if (ciclo == null) {
+			ciclo = cicloFinanceiroService.getCicloAtual();
+			model.addAttribute("cicloSelecionado", ciclo);
+			model.addAttribute("cicloTodos", false);
+			model.addAttribute("cicloEhAtual", true);
+		}
 
 		LocalDate inicioCiclo = ciclo.getDataInicio();
 		LocalDate fimCiclo = ciclo.getDataFim();

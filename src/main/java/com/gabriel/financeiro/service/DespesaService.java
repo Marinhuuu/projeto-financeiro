@@ -59,8 +59,16 @@ public class DespesaService {
 		this.formaPagamentoRepo = formaPagamentoRepo;
 	}
 
-	public Page<Despesa> ListDespesa(Pageable pageable) {
-		return despesaRepo.findAll(pageable);
+	/*
+	 * Despesas com data de compra no ciclo; ciclo null = todas.
+	 */
+	public Page<Despesa> listarDespesasDoCiclo(CicloFinanceiro ciclo, Pageable pageable) {
+
+		if (ciclo == null) {
+			return despesaRepo.findAll(pageable);
+		}
+
+		return despesaRepo.findByDataCompraBetween(ciclo.getDataInicio(), ciclo.getDataFim(), pageable);
 	}
 
 	// =========================================================
@@ -265,9 +273,16 @@ public class DespesaService {
 	// LISTAR DESPESAS DE TERCEIROS
 	// =========================================================
 
-	public List<Despesa> listarDespesasDeTerceiros() {
+	/*
+	 * Despesas de terceiros com data de compra no ciclo; ciclo null = todas.
+	 */
+	public List<Despesa> listarDespesasDeTerceiros(CicloFinanceiro ciclo) {
 
-		return despesaRepo.listarDespesasDeTerceiros();
+		if (ciclo == null) {
+			return despesaRepo.listarDespesasDeTerceiros();
+		}
+
+		return despesaRepo.listarDespesasDeTerceirosPorPeriodo(ciclo.getDataInicio(), ciclo.getDataFim());
 	}
 
 	// =========================================================

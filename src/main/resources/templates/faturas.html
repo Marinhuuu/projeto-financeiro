@@ -71,6 +71,31 @@
         </div>
 
 
+        <!-- FILTRO POR STATUS -->
+        <div class="flex flex-wrap gap-2">
+            <a th:href="@{/faturas}"
+               th:classappend="${filtroStatus == null} ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'"
+               class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition duration-150"
+               th:text="${'Todas (' + totalFaturas + ')'}">Todas</a>
+            <a th:href="@{/faturas(status='EM_ABERTO')}"
+               th:classappend="${filtroStatus != null and filtroStatus.name() == 'EM_ABERTO'} ? 'bg-sky-600 text-white border-sky-600' : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800/40 hover:bg-sky-100 dark:hover:bg-sky-900/50'"
+               class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition duration-150"
+               th:text="${'Em Aberto (' + totalPorStatus[T(com.gabriel.financeiro.enums.StatusFatura).EM_ABERTO] + ')'}">Em Aberto</a>
+            <a th:href="@{/faturas(status='FECHADA')}"
+               th:classappend="${filtroStatus != null and filtroStatus.name() == 'FECHADA'} ? 'bg-amber-600 text-white border-amber-600' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/40 hover:bg-amber-100 dark:hover:bg-amber-900/50'"
+               class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition duration-150"
+               th:text="${'Fechada (' + totalPorStatus[T(com.gabriel.financeiro.enums.StatusFatura).FECHADA] + ')'}">Fechada</a>
+            <a th:href="@{/faturas(status='VENCIDA')}"
+               th:classappend="${filtroStatus != null and filtroStatus.name() == 'VENCIDA'} ? 'bg-rose-600 text-white border-rose-600' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/40 hover:bg-rose-100 dark:hover:bg-rose-900/50'"
+               class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition duration-150"
+               th:text="${'Vencida (' + totalPorStatus[T(com.gabriel.financeiro.enums.StatusFatura).VENCIDA] + ')'}">Vencida</a>
+            <a th:href="@{/faturas(status='PAGA')}"
+               th:classappend="${filtroStatus != null and filtroStatus.name() == 'PAGA'} ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'"
+               class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition duration-150"
+               th:text="${'Paga (' + totalPorStatus[T(com.gabriel.financeiro.enums.StatusFatura).PAGA] + ')'}">Paga</a>
+        </div>
+
+
         <!-- LISTA DE FATURAS -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
@@ -174,11 +199,12 @@
                 </svg>
             </div>
 
-            <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">
+            <p class="text-sm font-semibold text-slate-600 dark:text-slate-300"
+               th:text="${filtroStatus == null} ? 'Nenhuma fatura cadastrada.' : ${'Nenhuma fatura com status ' + filtroStatus.descricao + '.'}">
                 Nenhuma fatura cadastrada.
             </p>
 
-            <p class="text-xs text-slate-400 mt-1 max-w-sm">
+            <p th:if="${filtroStatus == null}" class="text-xs text-slate-400 mt-1 max-w-sm">
                 As faturas vinculadas aos seus cartões de crédito aparecerão organizadas aqui.
             </p>
 

@@ -2,6 +2,7 @@ package com.gabriel.financeiro.entities;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +37,9 @@ public class FaturaCartao {
 
 	@Enumerated(EnumType.STRING)
 	private StatusFatura statusFatura;
+
+	// Preenchida só quando a fatura está PAGA (nula nos demais status)
+	private LocalDate dataPagamento;
 
 	@ManyToOne
 	@JoinColumn(name = "cartaoId", nullable = false)
@@ -113,6 +117,31 @@ public class FaturaCartao {
 
 	public void setStatusFatura(StatusFatura statusFatura) {
 		this.statusFatura = statusFatura;
+	}
+
+	public LocalDate getDataPagamento() {
+		return dataPagamento;
+	}
+
+	public void setDataPagamento(LocalDate dataPagamento) {
+		this.dataPagamento = dataPagamento;
+	}
+
+	/*
+	 * Início do período da fatura (não persistido): dia seguinte ao fechamento
+	 * do mês de referência anterior. O fim do período é a dataFechamento.
+	 * Ex.: fechamento dia 5, referência 10/2026 → 06/09/2026 a 05/10/2026.
+	 */
+	public LocalDate getDataInicioPeriodo() {
+
+		if (cartao == null || cartao.getDiaFechamento() == null
+				|| mesReferencia == null || anoReferencia == null) {
+			return null;
+		}
+
+		YearMonth anterior = YearMonth.of(anoReferencia, mesReferencia).minusMonths(1);
+
+		return anterior.atDay(Math.min(cartao.getDiaFechamento(), anterior.lengthOfMonth())).plusDays(1);
 	}
 
 	public CartaoCredito getCartao() {

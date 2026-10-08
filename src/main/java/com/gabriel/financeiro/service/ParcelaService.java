@@ -3,7 +3,6 @@ package com.gabriel.financeiro.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -22,15 +21,18 @@ public class ParcelaService {
 
 	private final ParcelaRepository parcelaRepo;
 	private final FaturaCartaoService faturaService;
+	private final CicloFinanceiroService cicloService;
 
-	public ParcelaService(ParcelaRepository parcelaRepo, FaturaCartaoService faturaService) {
+	public ParcelaService(ParcelaRepository parcelaRepo, FaturaCartaoService faturaService,
+			CicloFinanceiroService cicloService) {
 		this.parcelaRepo = parcelaRepo;
 		this.faturaService = faturaService;
+		this.cicloService = cicloService;
 	}
 
 	// =========================================================
 	// PARCELAS DO CICLO
-	// O ciclo aponta para as faturas do seu mês de referência (mês em que termina).
+	// O ciclo aponta para as faturas que fecham dentro dele (ver FaturasDoCiclo).
 	// Em todos os métodos, ciclo null = todas as parcelas.
 	// =========================================================
 
@@ -40,10 +42,7 @@ public class ParcelaService {
 			return parcelaRepo.findAll(pageable);
 		}
 
-		YearMonth referencia = YearMonth.from(ciclo.getDataFim());
-
-		return parcelaRepo.findByFaturaMesReferenciaAndFaturaAnoReferencia(
-				referencia.getMonthValue(), referencia.getYear(), pageable);
+		return parcelaRepo.listarDoCiclo(cicloService.faturasDoCiclo(ciclo), pageable);
 	}
 
 	public BigDecimal calcularTotalPendente(CicloFinanceiro ciclo) {
@@ -61,8 +60,7 @@ public class ParcelaService {
 	    if (ciclo == null) {
 	        total = parcelaRepo.somarTodas();
 	    } else {
-	        YearMonth referencia = YearMonth.from(ciclo.getDataFim());
-	        total = parcelaRepo.somarPorMesEAno(referencia.getMonthValue(), referencia.getYear());
+	        total = parcelaRepo.somarDoCiclo(cicloService.faturasDoCiclo(ciclo));
 	    }
 
 	    if (total.compareTo(BigDecimal.ZERO) == 0) {
@@ -80,9 +78,7 @@ public class ParcelaService {
 			return parcelaRepo.somarPorStatus(status);
 		}
 
-		YearMonth referencia = YearMonth.from(ciclo.getDataFim());
-
-		return parcelaRepo.somarPorStatusEMesEAno(status, referencia.getMonthValue(), referencia.getYear());
+		return parcelaRepo.somarPorStatusDoCiclo(status, cicloService.faturasDoCiclo(ciclo));
 	}
 
 	@Transactional

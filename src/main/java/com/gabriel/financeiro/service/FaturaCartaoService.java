@@ -25,15 +25,18 @@ public class FaturaCartaoService {
     private final FaturaCartaoRepository faturaRepo;
     private final ParcelaRepository parcelaRepo;
     private final DespesaRepository despesaRepo;
+    private final CicloFinanceiroService cicloService;
 
     public FaturaCartaoService(
             FaturaCartaoRepository faturaRepo,
             ParcelaRepository parcelaRepo,
-            DespesaRepository despesaRepo) {
+            DespesaRepository despesaRepo,
+            CicloFinanceiroService cicloService) {
 
         this.faturaRepo = faturaRepo;
         this.parcelaRepo = parcelaRepo;
         this.despesaRepo = despesaRepo;
+        this.cicloService = cicloService;
     }
 
     // =========================================================
@@ -41,7 +44,7 @@ public class FaturaCartaoService {
     // =========================================================
 
     /*
-     * Faturas do mês de referência do ciclo (mês em que ele termina); ciclo null = todas.
+     * Faturas que fecham dentro do ciclo (ver FaturasDoCiclo); ciclo null = todas.
      */
     @Transactional
     public List<FaturaCartao> listarFaturas(CicloFinanceiro ciclo) {
@@ -51,9 +54,7 @@ public class FaturaCartaoService {
         if (ciclo == null) {
             faturas = faturaRepo.findAllByOrderByAnoReferenciaDescMesReferenciaDesc();
         } else {
-            YearMonth referencia = YearMonth.from(ciclo.getDataFim());
-            faturas = faturaRepo.findByMesReferenciaAndAnoReferencia(
-                    referencia.getMonthValue(), referencia.getYear());
+            faturas = faturaRepo.listarDoCiclo(cicloService.faturasDoCiclo(ciclo));
         }
 
         atualizarStatus(faturas);
@@ -139,13 +140,22 @@ public class FaturaCartaoService {
             CartaoCredito cartao,
             YearMonth referencia) {
 
+        fatura.setDataFechamento(calcularDataFechamento(cartao, referencia));
+        fatura.setDataVencimento(calcularDataVencimento(cartao, referencia));
+    }
+
+    public LocalDate calcularDataFechamento(CartaoCredito cartao, YearMonth referencia) {
+        return ajustarDia(referencia, cartao.getDiaFechamento());
+    }
+
+    public LocalDate calcularDataVencimento(CartaoCredito cartao, YearMonth referencia) {
+
         YearMonth mesVencimento =
                 cartao.getDiaVencimento() <= cartao.getDiaFechamento()
                         ? referencia.plusMonths(1)
                         : referencia;
 
-        fatura.setDataFechamento(ajustarDia(referencia, cartao.getDiaFechamento()));
-        fatura.setDataVencimento(ajustarDia(mesVencimento, cartao.getDiaVencimento()));
+        return ajustarDia(mesVencimento, cartao.getDiaVencimento());
     }
 
     private LocalDate ajustarDia(YearMonth mes, int dia) {
@@ -169,7 +179,7 @@ public class FaturaCartaoService {
         }
 
         fatura.setValorTotal(parcelaRepo.somarPorFatura(fatura));
-        fatura.setStatusFatura(calcularStatus(fatura));
+        aplicarStatus(fatura, calcularStatus(fatura));
 
         faturaRepo.save(fatura);
     }
@@ -181,11 +191,31 @@ public class FaturaCartaoService {
 
             StatusFatura status = calcularStatus(fatura);
 
-            if (status != fatura.getStatusFatura()) {
-                fatura.setStatusFatura(status);
+            if (status != fatura.getStatusFatura() || !pagamentoConsistente(fatura)) {
+                aplicarStatus(fatura, status);
                 faturaRepo.save(fatura);
             }
         }
+    }
+
+    /*
+     * Mantém status e dataPagamento coerentes: PAGA sempre tem data,
+     * os demais status nunca têm. Fatura que ficou PAGA sem passar por
+     * pagarFatura (ex.: todas as parcelas pagas uma a uma) recebe a data de hoje.
+     */
+    private void aplicarStatus(FaturaCartao fatura, StatusFatura status) {
+
+        fatura.setStatusFatura(status);
+
+        if (status != StatusFatura.PAGA) {
+            fatura.setDataPagamento(null);
+        } else if (fatura.getDataPagamento() == null) {
+            fatura.setDataPagamento(LocalDate.now());
+        }
+    }
+
+    private boolean pagamentoConsistente(FaturaCartao fatura) {
+        return (fatura.getStatusFatura() == StatusFatura.PAGA) == (fatura.getDataPagamento() != null);
     }
 
     private StatusFatura calcularStatus(FaturaCartao fatura) {
@@ -208,6 +238,71 @@ public class FaturaCartaoService {
         }
 
         return StatusFatura.EM_ABERTO;
+    }
+
+    // =========================================================
+    // PAGAMENTO DA FATURA
+    // A fatura é PAGA quando todas as suas parcelas estão pagas (calcularStatus),
+    // então pagar a fatura = dar baixa em todas as parcelas dela. Nenhum
+    // lançamento é criado e o valor não muda: o saldo já conta as parcelas
+    // pelo mês de referência, independentemente do status.
+    // =========================================================
+
+    @Transactional
+    public FaturaCartao pagarFatura(UUID id) {
+
+        FaturaCartao fatura = buscarPorId(id);
+
+        if (fatura.getStatusFatura() == StatusFatura.PAGA) {
+            throw new RuntimeException("Esta fatura já está paga.");
+        }
+
+        List<Parcela> parcelas = parcelaRepo.findByFatura(fatura);
+
+        if (parcelas.isEmpty()) {
+            throw new RuntimeException("Esta fatura não tem lançamentos para pagar.");
+        }
+
+        for (Parcela parcela : parcelas) {
+
+            if (parcela.getStatusParcela() != StatusParcela.PAGA) {
+                parcela.setStatusParcela(StatusParcela.PAGA);
+                parcelaRepo.save(parcela);
+            }
+        }
+
+        fatura.setDataPagamento(LocalDate.now());
+        sincronizar(fatura);
+
+        return fatura;
+    }
+
+    @Transactional
+    public FaturaCartao desfazerPagamento(UUID id) {
+
+        FaturaCartao fatura = buscarPorId(id);
+
+        if (fatura.getStatusFatura() != StatusFatura.PAGA) {
+            throw new RuntimeException("Esta fatura não está paga.");
+        }
+
+        LocalDate hoje = LocalDate.now();
+
+        for (Parcela parcela : parcelaRepo.findByFatura(fatura)) {
+
+            parcela.setStatusParcela(
+                    parcela.getDataVencimento() != null && parcela.getDataVencimento().isBefore(hoje)
+                            ? StatusParcela.ATRASADA
+                            : StatusParcela.PENDENTE
+            );
+
+            parcelaRepo.save(parcela);
+        }
+
+        // Volta para EM_ABERTO, FECHADA ou VENCIDA conforme as datas; a data é limpa em aplicarStatus
+        sincronizar(fatura);
+
+        return fatura;
     }
 
     // =========================================================

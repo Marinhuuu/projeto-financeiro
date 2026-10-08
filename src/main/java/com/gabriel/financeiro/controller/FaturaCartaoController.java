@@ -10,8 +10,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.gabriel.financeiro.config.CicloSelecionado;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
@@ -98,5 +100,59 @@ public class FaturaCartaoController {
         model.addAttribute("parcelasParceladas", parcelasParceladas);
 
         return "fatura-detalhes";
+    }
+
+    // =========================================================
+    // PAGAMENTO DA FATURA
+    // origem=detalhes volta para a tela da fatura; senão volta para a lista (mantendo o filtro)
+    // =========================================================
+
+    @PostMapping("/{id}/pagar")
+    public String pagarFatura(@PathVariable UUID id,
+            @RequestParam(required = false) String origem,
+            @RequestParam(required = false) String status,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            faturaService.pagarFatura(id);
+            redirectAttributes.addFlashAttribute("mensagem", "Fatura marcada como paga.");
+            redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("mensagem", e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+        }
+
+        return redirecionar(id, origem, status, redirectAttributes);
+    }
+
+    @PostMapping("/{id}/desfazer-pagamento")
+    public String desfazerPagamento(@PathVariable UUID id,
+            @RequestParam(required = false) String origem,
+            @RequestParam(required = false) String status,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            faturaService.desfazerPagamento(id);
+            redirectAttributes.addFlashAttribute("mensagem", "Pagamento da fatura desfeito.");
+            redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("mensagem", e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+        }
+
+        return redirecionar(id, origem, status, redirectAttributes);
+    }
+
+    private String redirecionar(UUID id, String origem, String status, RedirectAttributes redirectAttributes) {
+
+        if ("detalhes".equals(origem)) {
+            return "redirect:/faturas/" + id;
+        }
+
+        if (status != null && !status.isBlank()) {
+            redirectAttributes.addAttribute("status", status);
+        }
+
+        return "redirect:/faturas";
     }
 }

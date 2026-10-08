@@ -40,6 +40,7 @@
 
     <!-- NAVBAR -->
     <nav th:replace="~{fragments/navbar :: navbar}"></nav>
+    <div th:replace="~{fragments/navbar :: flash}"></div>
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-16">
 
@@ -122,31 +123,34 @@
                         </div>
 
                         <!-- STATUS -->
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border"
+                              th:classappend="${fatura.statusFatura.name() == 'PAGA'} ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                                : (${fatura.statusFatura.name() == 'VENCIDA'} ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+                                : (${fatura.statusFatura.name() == 'FECHADA'} ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                                : 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800'))"
                               th:text="${fatura.statusFatura}">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             ABERTA
                         </span>
 
                     </div>
 
 
-                    <!-- DATA DE FECHAMENTO -->
+                    <!-- PERÍODO DO CICLO DO CARTÃO (dia seguinte ao fechamento anterior → fechamento) -->
                     <div class="bg-slate-50/70 dark:bg-slate-950/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800 mb-5">
 
                         <p class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider mb-0.5">
-                            Fechamento
+                            Período
                         </p>
 
-                        <p class="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-mono capitalize"
-                           th:text="${#temporals.format(fatura.dataFechamento, 'dd/MMM')}">
-                            10/jan
+                        <p class="text-base font-black text-slate-900 dark:text-white tracking-tight font-mono"
+                           th:text="${#temporals.format(fatura.dataInicioPeriodo, 'dd/MM/yyyy') + ' → ' + #temporals.format(fatura.dataFechamento, 'dd/MM/yyyy')}">
+                            06/09/2026 → 05/10/2026
                         </p>
 
                     </div>
 
 
-                    <!-- INFORMAÇÕES (VENCIMENTO E VALOR) -->
+                    <!-- INFORMAÇÕES (VENCIMENTO, VALOR E PAGAMENTO) -->
                     <div class="grid grid-cols-2 gap-4 mb-6">
 
                         <div>
@@ -171,12 +175,42 @@
                             </p>
                         </div>
 
+                        <div th:if="${fatura.dataPagamento != null}" class="col-span-2">
+                            <p class="text-xs font-medium text-slate-400 mb-0.5">
+                                Pagamento
+                            </p>
+
+                            <p class="font-bold text-emerald-600 dark:text-emerald-400 text-sm font-mono"
+                               th:text="${#temporals.format(fatura.dataPagamento, 'dd/MM/yyyy')}">
+                                08/10/2026
+                            </p>
+                        </div>
+
                     </div>
                 </div>
 
 
-                <!-- BOTÃO -->
-                <div class="border-t border-slate-100 dark:border-slate-800 pt-4">
+                <!-- AÇÕES -->
+                <div class="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-2">
+
+                    <form th:if="${fatura.statusFatura.name() != 'PAGA'}"
+                          th:action="@{/faturas/{id}/pagar(id=${fatura.id})}" method="POST">
+                        <input type="hidden" name="status" th:value="${filtroStatus != null} ? ${filtroStatus.name()} : ''">
+                        <button type="submit"
+                                class="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition duration-150">
+                            Pagar fatura
+                        </button>
+                    </form>
+
+                    <form th:if="${fatura.statusFatura.name() == 'PAGA'}"
+                          th:action="@{/faturas/{id}/desfazer-pagamento(id=${fatura.id})}" method="POST"
+                          onsubmit="return confirm('Desfazer o pagamento desta fatura? As parcelas voltam a ficar em aberto.');">
+                        <input type="hidden" name="status" th:value="${filtroStatus != null} ? ${filtroStatus.name()} : ''">
+                        <button type="submit"
+                                class="inline-flex items-center justify-center gap-2 w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold px-4 py-2.5 rounded-xl transition duration-150">
+                            Desfazer pagamento
+                        </button>
+                    </form>
 
                     <a th:href="@{/faturas/{id}(id=${fatura.id})}"
                        class="inline-flex items-center justify-center gap-2 w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition duration-150">

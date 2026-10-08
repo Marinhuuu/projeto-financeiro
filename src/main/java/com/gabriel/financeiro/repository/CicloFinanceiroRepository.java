@@ -12,9 +12,10 @@ import com.gabriel.financeiro.entities.CicloFinanceiro;
 public interface CicloFinanceiroRepository
         extends JpaRepository<CicloFinanceiro, UUID> {
 
-    // findFirst: tolera ciclos sobrepostos criados antes da correção do cálculo
+    // Busca pelas datas exatas: ciclos gravados com outro dia de fechamento
+    // (ex.: o padrão antigo 25) não são reaproveitados. findFirst tolera duplicados.
     Optional<CicloFinanceiro>
-    findFirstByDataInicioLessThanEqualAndDataFimGreaterThanEqualOrderByDataInicioDesc(
+    findFirstByDataInicioAndDataFim(
             LocalDate dataInicio,
             LocalDate dataFim);
 

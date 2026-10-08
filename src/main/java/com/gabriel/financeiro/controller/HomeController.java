@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.gabriel.financeiro.config.CicloSelecionado;
+import com.gabriel.financeiro.dto.FaturasDoCiclo;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.FaturaCartao;
 import com.gabriel.financeiro.enums.StatusFatura;
 import com.gabriel.financeiro.repository.DespesaRepository;
-import com.gabriel.financeiro.repository.FaturaCartaoRepository;
 import com.gabriel.financeiro.repository.ParcelaRepository;
 import com.gabriel.financeiro.repository.ReceitaRepository;
 import com.gabriel.financeiro.service.CicloFinanceiroService;
@@ -31,12 +31,11 @@ public class HomeController {
 	private final ReceitaRepository receitaRepo;
 	private final DespesaRepository despesaRepo;
 	private final ParcelaRepository parcelaRepo;
-	private final FaturaCartaoRepository faturaRepo;
 	private final CicloSelecionado cicloSelecionado;
 
 	public HomeController(CicloFinanceiroService cicloFinanceiroService, FaturaCartaoService faturaService,
 			ReceitaRepository receitaRepo, DespesaRepository despesaRepo, ParcelaRepository parcelaRepo,
-			FaturaCartaoRepository faturaRepo, CicloSelecionado cicloSelecionado) {
+			CicloSelecionado cicloSelecionado) {
 
 		this.cicloSelecionado = cicloSelecionado;
 		this.cicloFinanceiroService = cicloFinanceiroService;
@@ -44,7 +43,6 @@ public class HomeController {
 		this.receitaRepo = receitaRepo;
 		this.despesaRepo = despesaRepo;
 		this.parcelaRepo = parcelaRepo;
-		this.faturaRepo = faturaRepo;
 	}
 
 	@GetMapping("/")
@@ -91,23 +89,25 @@ public class HomeController {
 		BigDecimal totalDespesasForaCartao = despesaRepo.somarDespesasPessoaisNaoCartaoPorPeriodo(inicioCiclo, fimCiclo);
 
 		// =========================================================
-		// MINHAS PARCELAS NAS FATURAS DO MES DE REFERENCIA
+		// MINHAS PARCELAS NAS FATURAS DO CICLO
+		// Cada cartão segue o próprio ciclo: entram as faturas que fecham
+		// dentro do ciclo selecionado (ver FaturasDoCiclo)
 		// =========================================================
 
-		BigDecimal totalParcelasProprias = parcelaRepo.somarParcelasPropriasPorMesEAno(mesAtual, anoAtual);
+		FaturasDoCiclo faturasDoCiclo = cicloFinanceiroService.faturasDoCiclo(ciclo);
+
+		BigDecimal totalParcelasProprias = parcelaRepo.somarParcelasPropriasDoCiclo(faturasDoCiclo);
 
 		// Minhas despesas do mes: fora do cartao (PIX, debito, dinheiro...) + parcelas do cartao
 		BigDecimal totalDespesasProprias = totalDespesasForaCartao.add(totalParcelasProprias);
 
-		long quantidadeParcelasProprias = parcelaRepo.contarParcelasPropriasPorMesEAno(mesAtual, anoAtual);
+		long quantidadeParcelasProprias = parcelaRepo.contarParcelasPropriasDoCiclo(faturasDoCiclo);
 
 		// =========================================================
-		// FATURAS DO MES
+		// FATURAS DO CICLO
 		// =========================================================
 
-		List<FaturaCartao> faturas = faturaRepo.findByMesReferenciaAndAnoReferencia(mesAtual, anoAtual);
-
-		faturaService.atualizarStatus(faturas);
+		List<FaturaCartao> faturas = faturaService.listarFaturas(ciclo);
 
 		// TOTAL DAS FATURAS DO MES
 		BigDecimal somaFaturaMes = faturas.stream().map(FaturaCartao::getValorTotal).filter(valor -> valor != null)

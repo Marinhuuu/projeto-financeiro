@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import com.gabriel.financeiro.dto.FaturasDoCiclo;
 import com.gabriel.financeiro.entities.Despesa;
 import com.gabriel.financeiro.entities.FaturaCartao;
 import com.gabriel.financeiro.entities.Parcela;
@@ -32,47 +33,59 @@ public interface ParcelaRepository extends JpaRepository<Parcela, UUID> {
     BigDecimal somarTodas();
 
     // =========================================================
-    // PARCELAS DAS FATURAS DE UM MÊS DE REFERÊNCIA (ciclo selecionado)
+    // PARCELAS DAS FATURAS DO CICLO SELECIONADO
+    // Regra em FaturasDoCiclo / FaturaCartaoRepository.FATURA_DO_CICLO
     // =========================================================
 
-    Page<Parcela> findByFaturaMesReferenciaAndFaturaAnoReferencia(Integer mes, Integer ano, Pageable pageable);
+    @Query(value = """
+        SELECT p
+        FROM Parcela p
+        JOIN p.fatura f
+        WHERE """ + FaturaCartaoRepository.FATURA_DO_CICLO,
+        countQuery = """
+        SELECT COUNT(p)
+        FROM Parcela p
+        JOIN p.fatura f
+        WHERE """ + FaturaCartaoRepository.FATURA_DO_CICLO)
+    Page<Parcela> listarDoCiclo(FaturasDoCiclo faturas, Pageable pageable);
 
-    List<Parcela> findByFaturaMesReferenciaAndFaturaAnoReferencia(Integer mes, Integer ano);
+    @Query("""
+        SELECT p
+        FROM Parcela p
+        JOIN p.fatura f
+        WHERE """ + FaturaCartaoRepository.FATURA_DO_CICLO)
+    List<Parcela> listarDoCiclo(FaturasDoCiclo faturas);
 
     @Query("""
         SELECT COALESCE(SUM(p.valorParcela), 0)
         FROM Parcela p
+        JOIN p.fatura f
         WHERE p.statusParcela = :status
-        AND p.fatura.mesReferencia = :mes
-        AND p.fatura.anoReferencia = :ano
-    """)
-    BigDecimal somarPorStatusEMesEAno(StatusParcela status, Integer mes, Integer ano);
+        AND """ + FaturaCartaoRepository.FATURA_DO_CICLO)
+    BigDecimal somarPorStatusDoCiclo(StatusParcela status, FaturasDoCiclo faturas);
 
     @Query("""
         SELECT COALESCE(SUM(p.valorParcela), 0)
         FROM Parcela p
-        WHERE p.fatura.mesReferencia = :mes
-        AND p.fatura.anoReferencia = :ano
-    """)
-    BigDecimal somarPorMesEAno(Integer mes, Integer ano);
+        JOIN p.fatura f
+        WHERE """ + FaturaCartaoRepository.FATURA_DO_CICLO)
+    BigDecimal somarDoCiclo(FaturasDoCiclo faturas);
 
     @Query("""
         SELECT COALESCE(SUM(p.valorParcela), 0)
         FROM Parcela p
-        WHERE p.fatura.mesReferencia = :mes
-        AND p.fatura.anoReferencia = :ano
-        AND p.despesa.pessoa IS NULL
-    """)
-    BigDecimal somarParcelasPropriasPorMesEAno(Integer mes, Integer ano);
+        JOIN p.fatura f
+        WHERE p.despesa.pessoa IS NULL
+        AND """ + FaturaCartaoRepository.FATURA_DO_CICLO)
+    BigDecimal somarParcelasPropriasDoCiclo(FaturasDoCiclo faturas);
 
     @Query("""
         SELECT COUNT(p)
         FROM Parcela p
-        WHERE p.fatura.mesReferencia = :mes
-        AND p.fatura.anoReferencia = :ano
-        AND p.despesa.pessoa IS NULL
-    """)
-    long contarParcelasPropriasPorMesEAno(Integer mes, Integer ano);
+        JOIN p.fatura f
+        WHERE p.despesa.pessoa IS NULL
+        AND """ + FaturaCartaoRepository.FATURA_DO_CICLO)
+    long contarParcelasPropriasDoCiclo(FaturasDoCiclo faturas);
 
     @Query("""
         SELECT COALESCE(SUM(p.valorParcela), 0)

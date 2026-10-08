@@ -64,7 +64,8 @@ public class DespesaService {
 	}
 
 	/*
-	 * Despesas com data de compra no ciclo; ciclo null = todas.
+	 * Despesas do ciclo; ciclo null = todas. Fora do cartão: data de compra no ciclo.
+	 * No cartão: compra cuja 1ª parcela cai numa fatura do ciclo (ciclo do cartão).
 	 */
 	public Page<Despesa> listarDespesasDoCiclo(CicloFinanceiro ciclo, Pageable pageable) {
 
@@ -72,12 +73,13 @@ public class DespesaService {
 			return despesaRepo.findAll(pageable);
 		}
 
-		return despesaRepo.findByDataCompraBetween(ciclo.getDataInicio(), ciclo.getDataFim(), pageable);
+		return despesaRepo.listarDoCiclo(ciclo.getDataInicio(), ciclo.getDataFim(),
+				cicloService.faturasDoCiclo(ciclo), pageable);
 	}
 
 	/*
 	 * Todos os gastos do ciclo numa só listagem: despesas fora do cartão com data
-	 * de compra no ciclo + parcelas das faturas do mês de referência do ciclo.
+	 * de compra no ciclo + parcelas das faturas do ciclo (ver FaturasDoCiclo).
 	 * Compras no cartão entram só pelas parcelas. Ciclo null = todos os gastos.
 	 */
 	public Page<GastoDoCiclo> listarGastosDoCiclo(CicloFinanceiro ciclo, Pageable pageable) {
@@ -89,10 +91,8 @@ public class DespesaService {
 			despesas = despesaRepo.listarDespesasSemParcelas();
 			parcelas = parcelaRepo.findAll();
 		} else {
-			YearMonth referencia = YearMonth.from(ciclo.getDataFim());
 			despesas = despesaRepo.listarDespesasSemParcelasPorPeriodo(ciclo.getDataInicio(), ciclo.getDataFim());
-			parcelas = parcelaRepo.findByFaturaMesReferenciaAndFaturaAnoReferencia(referencia.getMonthValue(),
-					referencia.getYear());
+			parcelas = parcelaRepo.listarDoCiclo(cicloService.faturasDoCiclo(ciclo));
 		}
 
 		List<GastoDoCiclo> gastos = new ArrayList<>();
@@ -121,11 +121,10 @@ public class DespesaService {
 	}
 
 	/*
-	 * Parcelas próprias nas faturas do mês de referência do ciclo (mês em que ele termina).
+	 * Parcelas próprias nas faturas do ciclo (ver FaturasDoCiclo).
 	 */
 	public BigDecimal somarParcelasPropriasDoCiclo(CicloFinanceiro ciclo) {
-		YearMonth referencia = YearMonth.from(ciclo.getDataFim());
-		return parcelaRepo.somarParcelasPropriasPorMesEAno(referencia.getMonthValue(), referencia.getYear());
+		return parcelaRepo.somarParcelasPropriasDoCiclo(cicloService.faturasDoCiclo(ciclo));
 	}
 
 	/*
@@ -312,7 +311,7 @@ public class DespesaService {
 	// =========================================================
 
 	/*
-	 * Despesas de terceiros com data de compra no ciclo; ciclo null = todas.
+	 * Despesas de terceiros do ciclo (mesma regra de listarDespesasDoCiclo); ciclo null = todas.
 	 */
 	public List<Despesa> listarDespesasDeTerceiros(CicloFinanceiro ciclo) {
 
@@ -320,7 +319,8 @@ public class DespesaService {
 			return despesaRepo.listarDespesasDeTerceiros();
 		}
 
-		return despesaRepo.listarDespesasDeTerceirosPorPeriodo(ciclo.getDataInicio(), ciclo.getDataFim());
+		return despesaRepo.listarDespesasDeTerceirosDoCiclo(ciclo.getDataInicio(), ciclo.getDataFim(),
+				cicloService.faturasDoCiclo(ciclo));
 	}
 
 	// =========================================================

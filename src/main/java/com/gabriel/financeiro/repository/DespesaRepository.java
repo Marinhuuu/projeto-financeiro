@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import com.gabriel.financeiro.dto.FaturasDoCiclo;
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.entities.Despesa;
@@ -49,16 +50,36 @@ public interface DespesaRepository extends JpaRepository<Despesa, UUID> {
         SELECT d
         FROM Despesa d
         WHERE d.pessoa IS NOT NULL
-          AND d.dataCompra BETWEEN :inicio AND :fim
+          AND """ + DESPESA_DO_CICLO + """
         ORDER BY d.dataCompra DESC
     """)
-    List<Despesa> listarDespesasDeTerceirosPorPeriodo(LocalDate inicio, LocalDate fim);
+    List<Despesa> listarDespesasDeTerceirosDoCiclo(LocalDate inicio, LocalDate fim, FaturasDoCiclo faturas);
 
     // =========================================================
-    // DESPESAS DO PERÍODO (ciclo selecionado)
+    // DESPESAS DO CICLO SELECIONADO
+    // Fora do cartão (sem parcelas): pela data da compra.
+    // No cartão: pela fatura da 1ª parcela, que segue o ciclo do cartão
+    // (regra em FaturasDoCiclo). Exige :inicio, :fim e "faturas".
     // =========================================================
 
-    Page<Despesa> findByDataCompraBetween(LocalDate inicio, LocalDate fim, Pageable pageable);
+    String DESPESA_DO_CICLO = """
+        ((NOT EXISTS (SELECT 1 FROM Parcela p0 WHERE p0.despesa = d)
+            AND d.dataCompra BETWEEN :inicio AND :fim)
+         OR EXISTS (SELECT 1 FROM Parcela p1 JOIN p1.fatura f
+            WHERE p1.despesa = d AND p1.qtdParcela = 1
+            AND """ + FaturaCartaoRepository.FATURA_DO_CICLO + """
+         ))
+    """;
+
+    @Query(value = """
+        SELECT d
+        FROM Despesa d
+        WHERE """ + DESPESA_DO_CICLO,
+        countQuery = """
+        SELECT COUNT(d)
+        FROM Despesa d
+        WHERE """ + DESPESA_DO_CICLO)
+    Page<Despesa> listarDoCiclo(LocalDate inicio, LocalDate fim, FaturasDoCiclo faturas, Pageable pageable);
 
     // =========================================================
     // DESPESAS FORA DO CARTÃO (sem parcelas) — gastos do ciclo

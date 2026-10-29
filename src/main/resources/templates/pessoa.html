@@ -92,7 +92,8 @@
 
                 <div>
 
-                    <h2 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight"
+                        th:text="${modo == 'update'} ? 'Editar Pessoa' : 'Pessoas'">
 
                         Pessoas
 
@@ -124,7 +125,7 @@
 
         <!-- FORMULÁRIO -->
 
-        <form th:action="@{/pessoa}"
+        <form th:action="${modo == 'update'} ? @{/pessoa/update/{id}(id=${pessoa.id})} : @{/pessoa}"
               th:object="${pessoa}"
               method="POST"
               class="space-y-5">
@@ -151,7 +152,13 @@
 
             <!-- BOTÃO -->
 
-            <div class="flex justify-end pt-2">
+            <div class="flex justify-end pt-2 gap-3">
+
+                <a th:if="${modo == 'update'}"
+                   th:href="@{/pessoa}"
+                   class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-bold px-5 py-3 rounded-xl transition-all duration-150">
+                    Cancelar
+                </a>
 
                 <button type="submit"
 
@@ -159,7 +166,7 @@
 
                     <span>✓</span>
 
-                    Cadastrar Pessoa
+                    <span th:text="${modo == 'update'} ? 'Salvar Alterações' : 'Cadastrar Pessoa'">Cadastrar Pessoa</span>
 
                 </button>
 
@@ -236,8 +243,12 @@
                         </td>
 
 
-                        <td class="p-3 text-right">
+                        <td class="p-3 text-right whitespace-nowrap">
 
+                            <a th:href="@{/pessoa/update/{id}(id=${pessoa.id})}"
+                               class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 transition">
+                                Editar
+                            </a>
 
                             <form th:action="@{/pessoa/excluir}"
                                   method="POST"

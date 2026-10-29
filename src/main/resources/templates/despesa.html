@@ -62,10 +62,12 @@
                     </div>
 
                     <div>
-                        <h2 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight"
+                            th:text="${modo == 'update'} ? 'Editar Despesa' : 'Nova Despesa'">
                             Nova Despesa
                         </h2>
-                        <p class="text-xs font-medium text-slate-400 dark:text-slate-400 mt-0.5">
+                        <p class="text-xs font-medium text-slate-400 dark:text-slate-400 mt-0.5"
+                            th:text="${modo == 'update' and despesa.parteDeRecorrencia} ? 'Só esta ocorrência da recorrência será alterada' : 'Registre suas saídas e parcelamentos'">
                             Registre suas saídas e parcelamentos
                         </p>
                     </div>
@@ -81,7 +83,7 @@
             </div>
 
         <!-- FORMULÁRIO -->
-        <form th:action="@{/despesa}"
+        <form th:action="${modo == 'update'} ? @{/despesa/update/{id}(id=${despesa.id})} : @{/despesa}"
               th:object="${despesa}"
               method="POST"
               class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -193,7 +195,7 @@
                 <select id="tipoGasto"
                         class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white dark:focus:bg-slate-900 transition duration-150">
                     <option value="PROPRIO">Meu gasto</option>
-                    <option value="TERCEIRO">Gasto de outra pessoa</option>
+                    <option value="TERCEIRO" th:selected="${despesa.pessoa != null and despesa.pessoa.id != null}">Gasto de outra pessoa</option>
                 </select>
             </div>
 
@@ -226,8 +228,8 @@
                        class="w-full sm:w-1/2 border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white dark:focus:bg-slate-900 transition duration-150">
             </div>
 
-            <!-- RECORRÊNCIA -->
-            <div class="sm:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 p-4 space-y-3">
+            <!-- RECORRÊNCIA (só no cadastro; a edição altera apenas esta ocorrência) -->
+            <div th:if="${modo != 'update'}" class="sm:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 p-4 space-y-3">
                 <label for="recorrente" class="flex items-center gap-2.5 cursor-pointer select-none">
                     <input type="checkbox"
                            id="recorrente"
@@ -257,10 +259,15 @@
             </div>
 
             <!-- BOTÃO CONFIRMAR -->
-            <div class="sm:col-span-2 flex justify-end pt-3">
+            <div class="sm:col-span-2 flex justify-end gap-3 pt-3">
+                <a th:if="${modo == 'update'}"
+                   th:href="@{/despesa/despesas}"
+                   class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-bold px-5 py-3 rounded-xl transition-all duration-150">
+                    Cancelar
+                </a>
                 <button type="submit"
                         class="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-sm transition-all duration-150">
-                    <span>✓</span> Confirmar Inserção
+                    <span>✓</span> <span th:text="${modo == 'update'} ? 'Salvar Alterações' : 'Confirmar Inserção'">Confirmar Inserção</span>
                 </button>
             </div>
 
@@ -305,6 +312,9 @@
                         </th>
                         <th class="p-3 text-xs uppercase font-bold text-slate-400 dark:text-slate-400 tracking-wider">
                             Responsável
+                        </th>
+                        <th class="p-3 text-xs uppercase font-bold text-slate-400 dark:text-slate-400 tracking-wider text-right">
+                            Ações
                         </th>
                     </tr>
                 </thead>
@@ -359,6 +369,14 @@
                                   th:text="${d.pessoa.nome}">
                                 Pessoa
                             </span>
+                        </td>
+
+                        <!-- AÇÕES -->
+                        <td class="p-3 text-right">
+                            <a th:href="@{/despesa/update/{id}(id=${d.id})}"
+                               class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                Editar
+                            </a>
                         </td>
 
                     </tr>
@@ -500,11 +518,14 @@
 
         formaPagamento.addEventListener('change', controlarCamposCartao);
         tipoGasto.addEventListener('change', controlarCampoPessoa);
-        recorrente.addEventListener('change', controlarCampoRecorrencia);
+        // Na edição o bloco de recorrência não existe
+        if (recorrente) {
+            recorrente.addEventListener('change', controlarCampoRecorrencia);
+            controlarCampoRecorrencia();
+        }
 
         controlarCamposCartao();
         controlarCampoPessoa();
-        controlarCampoRecorrencia();
     </script>
 
 </body>

@@ -45,34 +45,7 @@ public class ReceitaService {
 	@Transactional
 	public Receita insertReceita(Receita receita) {
 
-		if (receita.getDescricao() == null || receita.getDescricao().isBlank()) {
-			throw new RuntimeException("Informe a descrição da receita");
-		}
-
-		if (receita.getValor() == null || receita.getValor().compareTo(BigDecimal.ZERO) <= 0) {
-			throw new RuntimeException("O valor da receita deve ser maior que zero");
-		}
-
-		if (receita.getValor().stripTrailingZeros().scale() > 2) {
-			throw new RuntimeException("O valor deve ter no máximo 2 casas decimais");
-		}
-
-		if (receita.getDataEntrada() == null) {
-			throw new RuntimeException("Informe a data de entrada");
-		}
-
-		if (receita.getCategoria() == null || receita.getCategoria().getId() == null) {
-			throw new RuntimeException("É necessário selecionar uma categoria");
-		}
-
-		Categoria categoria = categoriaRepo.findById(receita.getCategoria().getId())
-				.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
-
-		if (!"RECEITA".equalsIgnoreCase(categoria.getTipo())) {
-			throw new RuntimeException("A categoria selecionada não é do tipo RECEITA");
-		}
-
-		receita.setCategoria(categoria);
+		validar(receita);
 
 		// Recorrência: a receita se repete todo mês por totalOcorrencias meses
 		int ocorrencias = 1;
@@ -120,6 +93,58 @@ public class ReceitaService {
 		}
 
 		return primeira;
+	}
+
+	/*
+	 * Edição de uma receita (só esta ocorrência, se for recorrente).
+	 */
+	@Transactional
+	public Receita updateReceita(UUID id, Receita dados) {
+
+		Receita existente = buscarPorId(id);
+
+		validar(dados);
+
+		existente.setDescricao(dados.getDescricao());
+		existente.setValor(dados.getValor());
+		existente.setDataEntrada(dados.getDataEntrada());
+		existente.setCategoria(dados.getCategoria());
+		existente.setCiclo(cicloFinanceiroService.getOuCriarCiclo(dados.getDataEntrada()));
+
+		return receitaRepo.save(existente);
+	}
+
+	// Valida os campos e carrega a categoria pelo id
+	private void validar(Receita receita) {
+
+		if (receita.getDescricao() == null || receita.getDescricao().isBlank()) {
+			throw new RuntimeException("Informe a descrição da receita");
+		}
+
+		if (receita.getValor() == null || receita.getValor().compareTo(BigDecimal.ZERO) <= 0) {
+			throw new RuntimeException("O valor da receita deve ser maior que zero");
+		}
+
+		if (receita.getValor().stripTrailingZeros().scale() > 2) {
+			throw new RuntimeException("O valor deve ter no máximo 2 casas decimais");
+		}
+
+		if (receita.getDataEntrada() == null) {
+			throw new RuntimeException("Informe a data de entrada");
+		}
+
+		if (receita.getCategoria() == null || receita.getCategoria().getId() == null) {
+			throw new RuntimeException("É necessário selecionar uma categoria");
+		}
+
+		Categoria categoria = categoriaRepo.findById(receita.getCategoria().getId())
+				.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+		if (!"RECEITA".equalsIgnoreCase(categoria.getTipo())) {
+			throw new RuntimeException("A categoria selecionada não é do tipo RECEITA");
+		}
+
+		receita.setCategoria(categoria);
 	}
 
 	/*
@@ -180,7 +205,7 @@ public class ReceitaService {
 		return seguintes.size();
 	}
 
-	private Receita buscarPorId(UUID id) {
+	public Receita buscarPorId(UUID id) {
 		return receitaRepo.findById(id).orElseThrow(() -> new RuntimeException("Receita não encontrada"));
 	}
 }

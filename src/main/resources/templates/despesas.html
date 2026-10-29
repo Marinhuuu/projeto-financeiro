@@ -198,6 +198,10 @@
 
                             <!-- AÇÕES -->
                             <td class="px-6 py-4 text-right whitespace-nowrap">
+                                <a th:href="@{/despesa/update/{id}(id=${d.id})}"
+                                   class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                    Editar
+                                </a>
                                 <form th:if="${d.parteDeRecorrencia and d.ocorrencia < d.totalOcorrencias}"
                                       th:action="@{/despesa/excluir-recorrencia}"
                                       method="post"

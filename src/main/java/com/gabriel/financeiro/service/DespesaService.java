@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -144,6 +145,158 @@ public class DespesaService {
 	@Transactional
 	public Despesa insertDespesa(Despesa despesa) {
 
+		boolean isCartao = prepararDespesa(despesa);
+
+		// Recorrência: a despesa se repete todo mês por totalOcorrencias meses
+		int ocorrencias = 1;
+
+		if (Boolean.TRUE.equals(despesa.getRecorrente())) {
+
+			Integer total = despesa.getTotalOcorrencias();
+
+			if (total == null || total < 2 || total > MAX_OCORRENCIAS) {
+				throw new RuntimeException("A recorrência deve ser de 2 a " + MAX_OCORRENCIAS + " meses");
+			}
+
+			ocorrencias = total;
+
+			// Recorrência parcelada gera ocorrências x parcelas de uma vez
+			if (isCartao && ocorrencias * despesa.getQtdParcelas() > MAX_PARCELAS_GERADAS) {
+				throw new RuntimeException("Recorrência parcelada gera parcelas demais (máximo de "
+						+ MAX_PARCELAS_GERADAS + "). Reduza os meses ou as parcelas.");
+			}
+
+			despesa.setGrupoRecorrencia(UUID.randomUUID());
+			despesa.setOcorrencia(1);
+
+		} else {
+
+			despesa.setGrupoRecorrencia(null);
+			despesa.setOcorrencia(null);
+			despesa.setTotalOcorrencias(null);
+		}
+
+		Despesa primeira = null;
+
+		Set<FaturaCartao> faturasAfetadas = new LinkedHashSet<>();
+
+		for (int i = 0; i < ocorrencias; i++) {
+
+			Despesa atual = i == 0 ? despesa : copiarParaMesSeguinte(despesa, i);
+
+			// Cada ocorrência cai no ciclo (e nas faturas) do seu próprio mês
+			atual.setCiclo(cicloService.getOuCriarCiclo(atual.getDataCompra()));
+
+			Despesa salva = despesaRepo.save(atual);
+
+			if (isCartao) {
+
+				faturasAfetadas.addAll(gerarParcelas(salva));
+			}
+
+			if (primeira == null) {
+				primeira = salva;
+			}
+		}
+
+		// Cada fatura é recalculada uma vez, depois de receber todas as parcelas
+		for (FaturaCartao fatura : faturasAfetadas) {
+			faturaService.sincronizar(fatura);
+		}
+
+		return primeira;
+	}
+
+	// =========================================================
+	// EDITAR DESPESA
+	// Só a ocorrência informada é alterada (as outras da recorrência não mudam).
+	// Mudar valor, data, forma de pagamento, cartão ou parcelas refaz as parcelas,
+	// o que não é permitido se alguma já foi paga.
+	// =========================================================
+
+	public Despesa buscarPorId(UUID id) {
+		return despesaRepo.findById(id).orElseThrow(() -> new RuntimeException("Despesa não encontrada"));
+	}
+
+	@Transactional
+	public Despesa updateDespesa(UUID id, Despesa dados) {
+
+		Despesa existente = buscarPorId(id);
+
+		boolean isCartao = prepararDespesa(dados);
+
+		boolean mudouPagamento = existente.getValorTotal().compareTo(dados.getValorTotal()) != 0
+				|| !existente.getDataCompra().equals(dados.getDataCompra())
+				|| !Objects.equals(idDe(existente.getFormaPagamento()), idDe(dados.getFormaPagamento()))
+				|| !Objects.equals(idDe(existente.getCartao()), idDe(dados.getCartao()))
+				|| !Objects.equals(existente.getQtdParcelas(), dados.getQtdParcelas());
+
+		List<Parcela> parcelas = parcelaRepo.findByDespesa(existente);
+
+		if (mudouPagamento && parcelas.stream().anyMatch(p -> p.getStatusParcela() == StatusParcela.PAGA)) {
+			throw new RuntimeException("Esta despesa tem parcelas pagas: só a descrição, a categoria e o responsável "
+					+ "podem ser alterados");
+		}
+
+		existente.setDescricao(dados.getDescricao());
+		existente.setCategoria(dados.getCategoria());
+		existente.setPessoa(dados.getPessoa());
+
+		if (existente.getPessoa() == null) {
+			existente.setDevolvido(false);
+		}
+
+		if (!mudouPagamento) {
+			return despesaRepo.save(existente);
+		}
+
+		Set<FaturaCartao> faturasAfetadas = new LinkedHashSet<>();
+
+		for (Parcela parcela : parcelas) {
+
+			if (parcela.getFatura() != null) {
+				faturasAfetadas.add(parcela.getFatura());
+			}
+
+			parcelaRepo.delete(parcela);
+		}
+
+		existente.setValorTotal(dados.getValorTotal());
+		existente.setDataCompra(dados.getDataCompra());
+		existente.setFormaPagamento(dados.getFormaPagamento());
+		existente.setCartao(dados.getCartao());
+		existente.setQtdParcelas(dados.getQtdParcelas());
+		existente.setCiclo(cicloService.getOuCriarCiclo(dados.getDataCompra()));
+
+		Despesa salva = despesaRepo.save(existente);
+
+		if (isCartao) {
+			faturasAfetadas.addAll(gerarParcelas(salva));
+		}
+
+		// Depois de gerar as novas parcelas: fatura que ficou vazia é removida
+		for (FaturaCartao fatura : faturasAfetadas) {
+			faturaService.sincronizar(fatura);
+		}
+
+		return salva;
+	}
+
+	private static UUID idDe(FormaPagamento formaPagamento) {
+		return formaPagamento == null ? null : formaPagamento.getId();
+	}
+
+	private static UUID idDe(CartaoCredito cartao) {
+		return cartao == null ? null : cartao.getId();
+	}
+
+	/*
+	 * Valida a despesa do formulário e carrega as associações pelo id
+	 * (forma de pagamento, cartão, pessoa, categoria). Usado no cadastro e na edição.
+	 * Retorna se a despesa é no cartão (gera parcelas).
+	 */
+	private boolean prepararDespesa(Despesa despesa) {
+
 		if (despesa.getDescricao() == null || despesa.getDescricao().isBlank()) {
 			throw new RuntimeException("Informe a descrição da despesa");
 		}
@@ -246,64 +399,7 @@ public class DespesaService {
 
 		despesa.setCategoria(categoria);
 
-		// Recorrência: a despesa se repete todo mês por totalOcorrencias meses
-		int ocorrencias = 1;
-
-		if (Boolean.TRUE.equals(despesa.getRecorrente())) {
-
-			Integer total = despesa.getTotalOcorrencias();
-
-			if (total == null || total < 2 || total > MAX_OCORRENCIAS) {
-				throw new RuntimeException("A recorrência deve ser de 2 a " + MAX_OCORRENCIAS + " meses");
-			}
-
-			ocorrencias = total;
-
-			// Recorrência parcelada gera ocorrências x parcelas de uma vez
-			if (isCartao && ocorrencias * despesa.getQtdParcelas() > MAX_PARCELAS_GERADAS) {
-				throw new RuntimeException("Recorrência parcelada gera parcelas demais (máximo de "
-						+ MAX_PARCELAS_GERADAS + "). Reduza os meses ou as parcelas.");
-			}
-
-			despesa.setGrupoRecorrencia(UUID.randomUUID());
-			despesa.setOcorrencia(1);
-
-		} else {
-
-			despesa.setGrupoRecorrencia(null);
-			despesa.setOcorrencia(null);
-			despesa.setTotalOcorrencias(null);
-		}
-
-		Despesa primeira = null;
-
-		Set<FaturaCartao> faturasAfetadas = new LinkedHashSet<>();
-
-		for (int i = 0; i < ocorrencias; i++) {
-
-			Despesa atual = i == 0 ? despesa : copiarParaMesSeguinte(despesa, i);
-
-			// Cada ocorrência cai no ciclo (e nas faturas) do seu próprio mês
-			atual.setCiclo(cicloService.getOuCriarCiclo(atual.getDataCompra()));
-
-			Despesa salva = despesaRepo.save(atual);
-
-			if (isCartao) {
-
-				faturasAfetadas.addAll(gerarParcelas(salva));
-			}
-
-			if (primeira == null) {
-				primeira = salva;
-			}
-		}
-
-		// Cada fatura é recalculada uma vez, depois de receber todas as parcelas
-		for (FaturaCartao fatura : faturasAfetadas) {
-			faturaService.sincronizar(fatura);
-		}
-
-		return primeira;
+		return isCartao;
 	}
 
 	/*
@@ -374,6 +470,10 @@ public class DespesaService {
 	public void marcarComoNaoDevolvido(UUID id) {
 
 		Despesa despesa = despesaRepo.findById(id).orElseThrow(() -> new RuntimeException("Despesa não encontrada"));
+
+		if (despesa.getPessoa() == null) {
+			throw new RuntimeException("Somente despesas de terceiros podem ser marcadas como não devolvidas");
+		}
 
 		despesa.setDevolvido(false);
 

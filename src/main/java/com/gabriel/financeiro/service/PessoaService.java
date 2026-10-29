@@ -48,6 +48,10 @@ public class PessoaService {
 
     public Pessoa updatePessoa(UUID id, Pessoa pessoa) {
 
+        if (pessoa.getNome() == null || pessoa.getNome().isBlank()) {
+            throw new RuntimeException("Informe o nome da pessoa");
+        }
+
         Pessoa pessoaExistente = getById(id);
 
         pessoaExistente.setNome(pessoa.getNome());

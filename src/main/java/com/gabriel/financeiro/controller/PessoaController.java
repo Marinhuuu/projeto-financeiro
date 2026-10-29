@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,6 +49,36 @@ public class PessoaController {
         model.addAttribute("pessoa", new Pessoa());
 
         return "pessoa";
+    }
+
+    @GetMapping("/update/{id}")
+    public String update(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+
+        Pageable pageable = Paginacao.de(page, size, Sort.by("nome").ascending());
+
+        model.addAttribute("paginaPessoa", pessoaServ.listPessoa(pageable));
+        model.addAttribute("pessoa", pessoaServ.getById(id));
+        model.addAttribute("modo", "update");
+
+        return "pessoa";
+    }
+
+    @PostMapping("/update/{id}")
+    public String salvarEdicao(@PathVariable UUID id, Pessoa pessoa, RedirectAttributes redirectAttributes) {
+        try {
+            pessoaServ.updatePessoa(id, pessoa);
+            redirectAttributes.addFlashAttribute("mensagem", "Pessoa atualizada com sucesso!");
+            redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensagem", "Erro ao atualizar pessoa: " + MensagemErro.de(e));
+            redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+            return "redirect:/pessoa/update/" + id;
+        }
+        return "redirect:/pessoa";
     }
 
     @PostMapping

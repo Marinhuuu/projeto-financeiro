@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -86,6 +87,39 @@ public class ReceitaController {
         );
 
         return "receita";
+    }
+
+    // ==========================================
+    // EDITAR RECEITA (mesma tela, modo "update")
+    // ==========================================
+
+    @GetMapping("/update/{id}")
+    public String update(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+
+        pageReceita(page, size, model);
+
+        model.addAttribute("receita", receitaServ.buscarPorId(id));
+        model.addAttribute("modo", "update");
+
+        return "receita";
+    }
+
+    @PostMapping("/update/{id}")
+    public String salvarEdicao(@PathVariable UUID id, Receita receita, RedirectAttributes redirectAttributes) {
+        try {
+            receitaServ.updateReceita(id, receita);
+            redirectAttributes.addFlashAttribute("mensagem", "Receita atualizada com sucesso!");
+            redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensagem", "Erro ao atualizar receita: " + MensagemErro.de(e));
+            redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+            return "redirect:/receita/update/" + id;
+        }
+        return "redirect:/receita/receitas";
     }
 
     // ==========================================

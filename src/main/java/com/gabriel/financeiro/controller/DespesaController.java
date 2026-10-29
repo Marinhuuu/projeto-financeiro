@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +26,7 @@ import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.Despesa;
 import com.gabriel.financeiro.entities.FormaPagamento;
+import com.gabriel.financeiro.entities.Pessoa;
 import com.gabriel.financeiro.service.CartaoService;
 import com.gabriel.financeiro.service.CategoriaService;
 import com.gabriel.financeiro.service.DespesaService;
@@ -109,6 +111,63 @@ public class DespesaController {
 		model.addAttribute("pessoas", pessoaServ.listPessoa(pageablePessoa));
 
 		return "despesa";
+	}
+
+	// =========================================================
+	// EDITAR DESPESA (mesma tela, modo "update")
+	// =========================================================
+
+	@GetMapping("/update/{id}")
+	public String update(@PathVariable UUID id, @RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(name = CicloSelecionado.PARAMETRO, required = false) String cicloParam,
+			HttpServletRequest request, Model model) {
+
+		pageDespesa(page, size, cicloParam, request, model);
+
+		model.addAttribute("despesa", formularioDe(despesaServ.buscarPorId(id)));
+		model.addAttribute("modo", "update");
+
+		return "despesa";
+	}
+
+	@PostMapping("/update/{id}")
+	public String salvarEdicao(@PathVariable UUID id, Despesa despesa, RedirectAttributes redirectAttributes) {
+		try {
+			despesaServ.updateDespesa(id, despesa);
+			redirectAttributes.addFlashAttribute("mensagem", "Despesa atualizada com sucesso!");
+			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+		} catch (Exception e) {
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao atualizar despesa: " + MensagemErro.de(e));
+			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+			return "redirect:/despesa/update/" + id;
+		}
+		return "redirect:/despesa/despesas";
+	}
+
+	/*
+	 * Cópia da despesa para o formulário: os th:field navegam por categoria.id,
+	 * cartao.id etc., então as associações vazias viram objetos vazios. É uma cópia
+	 * para não alterar a entidade gerenciada pelo Hibernate.
+	 */
+	private Despesa formularioDe(Despesa original) {
+
+		Despesa form = new Despesa();
+
+		form.setId(original.getId());
+		form.setDescricao(original.getDescricao());
+		form.setValorTotal(original.getValorTotal());
+		form.setDataCompra(original.getDataCompra());
+		form.setQtdParcelas(original.getQtdParcelas());
+		form.setCategoria(original.getCategoria() != null ? original.getCategoria() : new Categoria());
+		form.setFormaPagamento(original.getFormaPagamento() != null ? original.getFormaPagamento() : new FormaPagamento());
+		form.setCartao(original.getCartao() != null ? original.getCartao() : new CartaoCredito());
+		form.setPessoa(original.getPessoa() != null ? original.getPessoa() : new Pessoa());
+		form.setGrupoRecorrencia(original.getGrupoRecorrencia());
+		form.setOcorrencia(original.getOcorrencia());
+		form.setTotalOcorrencias(original.getTotalOcorrencias());
+
+		return form;
 	}
 
 	// =========================================================

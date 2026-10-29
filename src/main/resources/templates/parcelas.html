@@ -448,7 +448,9 @@
 </main>
 
 
-<script>
+<script th:inline="javascript">
+// Token CSRF da sessão, exigido nos POST (ver ProtecaoCsrf)
+const CSRF_TOKEN = /*[[${csrfToken}]]*/ '';
 
 let filtroAtual = 'TODAS';
 
@@ -500,6 +502,7 @@ async function executarAcaoParcela(botao, acao) {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': CSRF_TOKEN,
                 'Accept': 'application/json'
             }
         });

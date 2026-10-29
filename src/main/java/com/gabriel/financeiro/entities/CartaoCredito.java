@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.hibernate.annotations.TenantId;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -19,6 +22,11 @@ public class CartaoCredito {
 	@Id
 	@GeneratedValue
 	private UUID id;
+
+	// Dono do registro: preenchido e filtrado pelo Hibernate a partir do usuário logado (UsuarioTenantResolver)
+	@TenantId
+	@Column(name = "usuario_id")
+	private UUID usuarioId;
 	private String nome;
 	private BigDecimal limite;
 	private Integer diaFechamento;
@@ -90,6 +98,10 @@ public class CartaoCredito {
 
 	public void setDespesas(List<Despesa> despesas) {
 		this.despesas = despesas;
+	}
+
+	public UUID getUsuarioId() {
+		return usuarioId;
 	}
 
 	@Override

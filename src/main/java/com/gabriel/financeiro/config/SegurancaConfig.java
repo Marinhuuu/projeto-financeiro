@@ -11,9 +11,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class SegurancaConfig implements WebMvcConfigurer {
 
 	private final AutenticacaoInterceptor autenticacaoInterceptor;
+	private final ProtecaoCsrf protecaoCsrf;
 
-	public SegurancaConfig(AutenticacaoInterceptor autenticacaoInterceptor) {
+	public SegurancaConfig(AutenticacaoInterceptor autenticacaoInterceptor, ProtecaoCsrf protecaoCsrf) {
 		this.autenticacaoInterceptor = autenticacaoInterceptor;
+		this.protecaoCsrf = protecaoCsrf;
 	}
 
 	// Hash BCrypt com salt aleatório; só o hash é gravado no banco.
@@ -25,6 +27,9 @@ public class SegurancaConfig implements WebMvcConfigurer {
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
+		// Todos os POST, inclusive login e primeiro acesso
+		registry.addInterceptor(protecaoCsrf).addPathPatterns("/**");
+
 		registry.addInterceptor(autenticacaoInterceptor)
 				.addPathPatterns("/**")
 				.excludePathPatterns(

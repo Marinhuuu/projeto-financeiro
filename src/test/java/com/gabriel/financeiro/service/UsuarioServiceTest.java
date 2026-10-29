@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,14 +78,58 @@ class UsuarioServiceTest {
 	}
 
 	@Test
-	void primeiroAcessoCompletaCadastroExistenteSemSenha() {
-		Usuario existente = new Usuario(null, "Antigo", "Nome", CPF, LocalDate.of(1980, 1, 1));
-		when(repo.findByCpf(CPF)).thenReturn(Optional.of(existente));
+	void primeiroAcessoDeConviteConfirmaNascimentoEMantemOsDadosDoConvite() {
+		Usuario convite = new Usuario(null, "Convidado", "Nome", CPF, LocalDate.of(1990, 5, 20));
+		when(repo.findByCpf(CPF)).thenReturn(Optional.of(convite));
 
 		Usuario salvo = service.concluirPrimeiroAcesso(CPF, dados(), "senhaForte1", "senhaForte1");
 
-		assertEquals("Gabriel", salvo.getNome());
+		assertEquals("Convidado", salvo.getNome());
 		assertFalse(salvo.isPrimeiroAcessoPendente());
+	}
+
+	@Test
+	void primeiroAcessoDeConviteRejeitaNascimentoDiferente() {
+		Usuario convite = new Usuario(null, "Convidado", "Nome", CPF, LocalDate.of(1980, 1, 1));
+		when(repo.findByCpf(CPF)).thenReturn(Optional.of(convite));
+
+		assertThrows(UsuarioService.IdentidadeNaoConfirmada.class,
+				() -> service.concluirPrimeiroAcesso(CPF, dados(), "senhaForte1", "senhaForte1"));
+		assertTrue(convite.isPrimeiroAcessoPendente());
+	}
+
+	@Test
+	void cpfSemConviteSoEntraSeNaoHouverNenhumUsuario() {
+		when(repo.findByCpf(CPF)).thenReturn(Optional.empty());
+		when(repo.count()).thenReturn(1L);
+
+		assertThrows(RuntimeException.class,
+				() -> service.concluirPrimeiroAcesso(CPF, dados(), "senhaForte1", "senhaForte1"));
+	}
+
+	// ===== GERENCIAMENTO =====
+
+	@Test
+	void soGerenciaASiMesmoEOsPropriosConvitesPendentes() {
+		UUID logado = UUID.randomUUID();
+
+		Usuario proprio = usuarioComId(logado, null);
+		Usuario meuConvite = usuarioComId(UUID.randomUUID(), logado);
+		Usuario conviteDeOutro = usuarioComId(UUID.randomUUID(), UUID.randomUUID());
+		Usuario conviteJaUsado = usuarioComId(UUID.randomUUID(), logado);
+		conviteJaUsado.setSenha(encoder.encode("senhaForte1"));
+
+		assertEquals(proprio, service.getGerenciavel(proprio.getId(), logado));
+		assertEquals(meuConvite, service.getGerenciavel(meuConvite.getId(), logado));
+		assertThrows(RuntimeException.class, () -> service.getGerenciavel(conviteDeOutro.getId(), logado));
+		assertThrows(RuntimeException.class, () -> service.getGerenciavel(conviteJaUsado.getId(), logado));
+	}
+
+	private Usuario usuarioComId(UUID id, UUID convidadoPor) {
+		Usuario usuario = new Usuario(id, "Nome", "Sobrenome", CPF, LocalDate.of(1990, 5, 20));
+		usuario.setConvidadoPor(convidadoPor);
+		when(repo.findById(id)).thenReturn(Optional.of(usuario));
+		return usuario;
 	}
 
 	@Test

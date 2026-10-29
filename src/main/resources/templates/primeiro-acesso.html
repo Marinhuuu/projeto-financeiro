@@ -72,7 +72,7 @@
             <div class="text-center mb-6">
                 <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Primeiro acesso</h1>
                 <p class="text-sm font-medium text-slate-400 mt-1"
-                   th:text="${cadastroExistente} ? 'Confirme os seus dados e crie a sua senha' : 'Complete o seu cadastro e crie a sua senha'">
+                   th:text="${cadastroExistente} ? 'Confirme a sua data de nascimento e crie a sua senha' : 'Complete o seu cadastro e crie a sua senha'">
                     Complete o seu cadastro e crie a sua senha
                 </p>
             </div>
@@ -101,7 +101,7 @@
                 </div>
 
                 <!-- NOME -->
-                <div>
+                <div th:unless="${cadastroExistente}">
                     <label for="nome" class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
                         Nome
                     </label>
@@ -115,7 +115,7 @@
                 </div>
 
                 <!-- SOBRENOME -->
-                <div>
+                <div th:unless="${cadastroExistente}">
                     <label for="sobrenome" class="block text-xs uppercase font-bold text-slate-500 dark:text-slate-400 mb-1.5 tracking-wider">
                         Sobrenome
                     </label>

@@ -7,6 +7,9 @@ import java.util.UUID;
 
 import com.gabriel.financeiro.enums.StatusParcela;
 
+import org.hibernate.annotations.TenantId;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -23,6 +26,11 @@ public class Parcela {
 	@Id
 	@GeneratedValue
 	private UUID id;
+
+	// Dono do registro: preenchido e filtrado pelo Hibernate a partir do usuário logado (UsuarioTenantResolver)
+	@TenantId
+	@Column(name = "usuario_id")
+	private UUID usuarioId;
 	private Integer qtdParcela;
 	private BigDecimal valorParcela;
 	private LocalDate dataVencimento;
@@ -104,6 +112,10 @@ public class Parcela {
 
 	public void setFatura(FaturaCartao fatura) {
 		this.fatura = fatura;
+	}
+
+	public UUID getUsuarioId() {
+		return usuarioId;
 	}
 
 	@Override

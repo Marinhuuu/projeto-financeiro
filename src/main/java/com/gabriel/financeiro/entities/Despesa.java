@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.hibernate.annotations.TenantId;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -23,6 +26,11 @@ public class Despesa {
 	@Id
 	@GeneratedValue
 	private UUID id;
+
+	// Dono do registro: preenchido e filtrado pelo Hibernate a partir do usuário logado (UsuarioTenantResolver)
+	@TenantId
+	@Column(name = "usuario_id")
+	private UUID usuarioId;
 
 	private String descricao;
 
@@ -217,6 +225,10 @@ public class Despesa {
 		return grupoRecorrencia != null;
 	}
 	
+	public UUID getUsuarioId() {
+		return usuarioId;
+	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(id);

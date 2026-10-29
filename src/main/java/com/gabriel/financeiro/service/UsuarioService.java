@@ -30,13 +30,45 @@ public class UsuarioService {
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	public Page<Usuario> listUsuario(Pageable pageable) {
-		return usuarioRepo.findAll(pageable);
+	/*
+	 * Erro de primeiro acesso por dados que não conferem com o convite
+	 * (conta como tentativa errada no LimiteTentativas).
+	 */
+	public static class IdentidadeNaoConfirmada extends RuntimeException {
+
+		private static final long serialVersionUID = 1L;
+
+		public IdentidadeNaoConfirmada(String mensagem) {
+			super(mensagem);
+		}
+	}
+
+	// O próprio usuário + os convites pendentes que ele fez
+	public Page<Usuario> listUsuario(UUID usuarioLogadoId, Pageable pageable) {
+		return usuarioRepo.listarGerenciaveis(usuarioLogadoId, pageable);
 	}
 
 	public Usuario getById(UUID id) {
 		return usuarioRepo.findById(id)
 				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+	}
+
+	/*
+	 * Usuário que o logado pode ver/alterar: ele mesmo ou um convite seu ainda não usado.
+	 */
+	public Usuario getGerenciavel(UUID id, UUID usuarioLogadoId) {
+
+		Usuario usuario = getById(id);
+
+		boolean proprio = usuario.getId().equals(usuarioLogadoId);
+		boolean conviteProprio = usuario.isPrimeiroAcessoPendente()
+				&& usuarioLogadoId != null && usuarioLogadoId.equals(usuario.getConvidadoPor());
+
+		if (!proprio && !conviteProprio) {
+			throw new RuntimeException("Usuário não encontrado");
+		}
+
+		return usuario;
 	}
 
 	public boolean existe(UUID id) {
@@ -47,7 +79,11 @@ public class UsuarioService {
 		return usuarioRepo.findByCpf(normalizarCpf(cpf));
 	}
 
-	public Usuario insertUsuario(Usuario usuario) {
+	/*
+	 * Pré-cadastro (convite): o convidado define a senha no primeiro acesso,
+	 * confirmando a data de nascimento informada aqui.
+	 */
+	public Usuario insertUsuario(Usuario usuario, UUID convidadoPor) {
 
 		validar(usuario);
 
@@ -59,13 +95,14 @@ public class UsuarioService {
 
 		// A senha é definida pelo próprio usuário no primeiro acesso
 		usuario.setSenha(null);
+		usuario.setConvidadoPor(convidadoPor);
 
 		return usuarioRepo.save(usuario);
 	}
 
-	public Usuario updateUsuario(UUID id, Usuario usuario) {
+	public Usuario updateUsuario(UUID id, Usuario usuario, UUID usuarioLogadoId) {
 
-		Usuario existente = getById(id);
+		Usuario existente = getGerenciavel(id, usuarioLogadoId);
 
 		validar(usuario);
 
@@ -81,8 +118,19 @@ public class UsuarioService {
 		return usuarioRepo.save(existente);
 	}
 
-	public void deleteUsuario(UUID id) {
-		usuarioRepo.delete(getById(id));
+	/*
+	 * Só convites não usados podem ser excluídos: um usuário ativo tem dados
+	 * (que ficariam sem dono) e não pode ser removido por outro.
+	 */
+	public void deleteUsuario(UUID id, UUID usuarioLogadoId) {
+
+		Usuario usuario = getGerenciavel(id, usuarioLogadoId);
+
+		if (!usuario.isPrimeiroAcessoPendente()) {
+			throw new RuntimeException("só é possível excluir convites que ainda não foram usados");
+		}
+
+		usuarioRepo.delete(usuario);
 	}
 
 	// =========================================================
@@ -104,22 +152,49 @@ public class UsuarioService {
 	}
 
 	/*
-	 * Primeiro acesso (somente uma vez por CPF): completa/cria o cadastro
-	 * e grava apenas o hash da senha escolhida.
+	 * O primeiro acesso de um CPF sem cadastro só é aceito enquanto o sistema não
+	 * tem nenhum usuário (instalação nova). Depois disso, só por convite.
+	 */
+	public boolean permiteCadastroSemConvite() {
+		return usuarioRepo.count() == 0;
+	}
+
+	/*
+	 * Primeiro acesso (somente uma vez por CPF) e grava apenas o hash da senha escolhida.
+	 * Convite: confirma a identidade pela data de nascimento cadastrada; nome e
+	 * nascimento do convite são mantidos. Sem convite: só na instalação nova.
 	 */
 	@Transactional
 	public Usuario concluirPrimeiroAcesso(String cpf, Usuario dados, String senha, String confirmacaoSenha) {
 
-		Usuario usuario = buscarPorCpf(cpf).orElseGet(Usuario::new);
+		Optional<Usuario> existente = buscarPorCpf(cpf);
 
-		if (!usuario.isPrimeiroAcessoPendente()) {
-			throw new RuntimeException("O primeiro acesso deste CPF já foi realizado. Entre com a sua senha.");
+		Usuario usuario;
+
+		if (existente.isPresent()) {
+
+			usuario = existente.get();
+
+			if (!usuario.isPrimeiroAcessoPendente()) {
+				throw new RuntimeException("O primeiro acesso deste CPF já foi realizado. Entre com a sua senha.");
+			}
+
+			if (dados.getDataNascimento() == null || !dados.getDataNascimento().equals(usuario.getDataNascimento())) {
+				throw new IdentidadeNaoConfirmada("A data de nascimento não confere com o cadastro");
+			}
+
+		} else {
+
+			if (!permiteCadastroSemConvite()) {
+				throw new RuntimeException("CPF não cadastrado. Peça a um usuário do sistema para cadastrar você.");
+			}
+
+			usuario = new Usuario();
+			usuario.setNome(dados.getNome());
+			usuario.setSobrenome(dados.getSobrenome());
+			usuario.setCpf(cpf);
+			usuario.setDataNascimento(dados.getDataNascimento());
 		}
-
-		usuario.setNome(dados.getNome());
-		usuario.setSobrenome(dados.getSobrenome());
-		usuario.setCpf(cpf);
-		usuario.setDataNascimento(dados.getDataNascimento());
 
 		validar(usuario);
 		validarSenha(senha, confirmacaoSenha);

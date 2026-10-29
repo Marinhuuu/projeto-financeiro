@@ -45,9 +45,9 @@ public class UsuarioController {
 	@GetMapping
 	public String pageUsuario(@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size,
-			Model model) {
+			HttpServletRequest request, Model model) {
 
-		carregarListagem(page, size, model);
+		carregarListagem(page, size, request, model);
 		model.addAttribute("usuario", new Usuario());
 		model.addAttribute("modo", "create");
 
@@ -55,9 +55,9 @@ public class UsuarioController {
 	}
 
 	@PostMapping
-	public String insertUsuario(Usuario usuario, RedirectAttributes redirectAttributes) {
+	public String insertUsuario(Usuario usuario, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 		try {
-			usuarioServ.insertUsuario(usuario);
+			usuarioServ.insertUsuario(usuario, SessaoUsuario.usuarioId(request));
 			redirectAttributes.addFlashAttribute("mensagem", "Usuário cadastrado com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
@@ -75,19 +75,20 @@ public class UsuarioController {
 	public String update(@PathVariable UUID id,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size,
-			Model model) {
+			HttpServletRequest request, Model model) {
 
-		carregarListagem(page, size, model);
-		model.addAttribute("usuario", usuarioServ.getById(id));
+		carregarListagem(page, size, request, model);
+		model.addAttribute("usuario", usuarioServ.getGerenciavel(id, SessaoUsuario.usuarioId(request)));
 		model.addAttribute("modo", "update");
 
 		return "usuario";
 	}
 
 	@PostMapping("/update/{id}")
-	public String salvarEdicao(@PathVariable UUID id, Usuario usuario, RedirectAttributes redirectAttributes) {
+	public String salvarEdicao(@PathVariable UUID id, Usuario usuario, HttpServletRequest request,
+			RedirectAttributes redirectAttributes) {
 		try {
-			usuarioServ.updateUsuario(id, usuario);
+			usuarioServ.updateUsuario(id, usuario, SessaoUsuario.usuarioId(request));
 			redirectAttributes.addFlashAttribute("mensagem", "Usuário atualizado com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
@@ -110,7 +111,7 @@ public class UsuarioController {
 				throw new RuntimeException("você não pode excluir o próprio usuário");
 			}
 
-			usuarioServ.deleteUsuario(id);
+			usuarioServ.deleteUsuario(id, SessaoUsuario.usuarioId(request));
 			redirectAttributes.addFlashAttribute("mensagem", "Usuário excluído com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
@@ -120,8 +121,9 @@ public class UsuarioController {
 		return "redirect:/usuario";
 	}
 
-	private void carregarListagem(int page, int size, Model model) {
+	private void carregarListagem(int page, int size, HttpServletRequest request, Model model) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("nome").ascending().and(Sort.by("sobrenome")));
-		model.addAttribute("paginaUsuario", usuarioServ.listUsuario(pageable));
+		model.addAttribute("paginaUsuario", usuarioServ.listUsuario(SessaoUsuario.usuarioId(request), pageable));
+		model.addAttribute("usuarioLogadoId", SessaoUsuario.usuarioId(request));
 	}
 }

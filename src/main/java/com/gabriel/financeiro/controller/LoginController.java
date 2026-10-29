@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.LimiteTentativas;
 import com.gabriel.financeiro.config.SessaoUsuario;
 import com.gabriel.financeiro.entities.Usuario;
 import com.gabriel.financeiro.service.UsuarioService;
@@ -22,10 +23,18 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class LoginController {
 
-	private final UsuarioService usuarioServ;
+	// Tentativas erradas permitidas por janela (LimiteTentativas.JANELA)
+	private static final int MAX_FALHAS_POR_CPF = 5;
+	private static final int MAX_FALHAS_POR_IP = 20;
 
-	public LoginController(UsuarioService usuarioServ) {
+	private static final String MENSAGEM_BLOQUEIO = "Muitas tentativas erradas. Tente novamente em 15 minutos.";
+
+	private final UsuarioService usuarioServ;
+	private final LimiteTentativas limiteTentativas;
+
+	public LoginController(UsuarioService usuarioServ, LimiteTentativas limiteTentativas) {
 		this.usuarioServ = usuarioServ;
+		this.limiteTentativas = limiteTentativas;
 	}
 
 	// O formulário de primeiro acesso nunca define id, CPF ou hash diretamente
@@ -60,10 +69,18 @@ public class LoginController {
 			return erroLogin(redirectAttributes, cpf, "CPF inválido");
 		}
 
+		String chaveCpf = chaveCpf(cpfNormalizado);
+		String chaveIp = "ip:" + request.getRemoteAddr();
+
+		if (limiteTentativas.bloqueado(chaveCpf, MAX_FALHAS_POR_CPF)
+				|| limiteTentativas.bloqueado(chaveIp, MAX_FALHAS_POR_IP)) {
+			return erroLogin(redirectAttributes, cpf, MENSAGEM_BLOQUEIO);
+		}
+
 		Optional<Usuario> usuario = usuarioServ.buscarPorCpf(cpfNormalizado);
 
-		// Primeiro acesso: CPF sem cadastro ou cadastrado sem senha
-		if (usuario.isEmpty() || usuario.get().isPrimeiroAcessoPendente()) {
+		// Primeiro acesso: convite (cadastrado sem senha) ou instalação sem nenhum usuário
+		if (usuario.map(Usuario::isPrimeiroAcessoPendente).orElseGet(usuarioServ::permiteCadastroSemConvite)) {
 			request.getSession(true).setAttribute(SessaoUsuario.CPF_PRIMEIRO_ACESSO, cpfNormalizado);
 			return "redirect:/primeiro-acesso";
 		}
@@ -71,8 +88,12 @@ public class LoginController {
 		Optional<Usuario> autenticado = usuarioServ.autenticar(cpfNormalizado, senha);
 
 		if (autenticado.isEmpty()) {
+			limiteTentativas.registrarFalha(chaveCpf);
+			limiteTentativas.registrarFalha(chaveIp);
 			return erroLogin(redirectAttributes, cpf, "CPF ou senha incorretos");
 		}
+
+		limiteTentativas.limpar(chaveCpf);
 
 		SessaoUsuario.iniciar(request, autenticado.get());
 
@@ -112,14 +133,18 @@ public class LoginController {
 
 		Optional<Usuario> existente = usuarioServ.buscarPorCpf(cpf);
 
-		if (existente.isPresent() && !existente.get().isPrimeiroAcessoPendente()) {
+		boolean liberado = existente.map(Usuario::isPrimeiroAcessoPendente)
+				.orElseGet(usuarioServ::permiteCadastroSemConvite);
+
+		if (!liberado) {
 			request.getSession().removeAttribute(SessaoUsuario.CPF_PRIMEIRO_ACESSO);
 			return "redirect:/login";
 		}
 
-		// Após um erro, o formulário volta com o que foi digitado (flash "usuario")
+		// Após um erro, o formulário volta com o que foi digitado (flash "usuario").
+		// Os dados do convite não são exibidos: quem chegou aqui só informou o CPF.
 		if (!model.containsAttribute("usuario")) {
-			model.addAttribute("usuario", existente.orElseGet(Usuario::new));
+			model.addAttribute("usuario", new Usuario());
 		}
 
 		Usuario exibicao = new Usuario();
@@ -144,6 +169,12 @@ public class LoginController {
 			return "redirect:/login";
 		}
 
+		if (limiteTentativas.bloqueado(chaveCpf(cpf), MAX_FALHAS_POR_CPF)) {
+			redirectAttributes.addFlashAttribute("mensagem", MENSAGEM_BLOQUEIO);
+			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+			return "redirect:/primeiro-acesso";
+		}
+
 		try {
 			Usuario usuario = usuarioServ.concluirPrimeiroAcesso(cpf, dados, senha, confirmacaoSenha);
 
@@ -154,6 +185,13 @@ public class LoginController {
 
 			return "redirect:/home";
 
+		} catch (UsuarioService.IdentidadeNaoConfirmada e) {
+			limiteTentativas.registrarFalha(chaveCpf(cpf));
+			redirectAttributes.addFlashAttribute("mensagem", e.getMessage());
+			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+
+			return "redirect:/primeiro-acesso";
+
 		} catch (Exception e) {
 			redirectAttributes.addFlashAttribute("mensagem", e.getMessage());
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
@@ -161,6 +199,10 @@ public class LoginController {
 
 			return "redirect:/primeiro-acesso";
 		}
+	}
+
+	private static String chaveCpf(String cpf) {
+		return "cpf:" + cpf;
 	}
 
 	private String cpfPrimeiroAcesso(HttpServletRequest request) {

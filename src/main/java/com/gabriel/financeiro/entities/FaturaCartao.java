@@ -10,6 +10,9 @@ import java.util.UUID;
 
 import com.gabriel.financeiro.enums.StatusFatura;
 
+import org.hibernate.annotations.TenantId;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,6 +31,11 @@ public class FaturaCartao {
 	@Id
 	@GeneratedValue
 	private UUID id;
+
+	// Dono do registro: preenchido e filtrado pelo Hibernate a partir do usuário logado (UsuarioTenantResolver)
+	@TenantId
+	@Column(name = "usuario_id")
+	private UUID usuarioId;
 
 	private Integer mesReferencia;
 	private Integer anoReferencia;
@@ -158,6 +166,10 @@ public class FaturaCartao {
 
 	public void setParcelas(List<Parcela> parcelas) {
 		this.parcelas = parcelas;
+	}
+
+	public UUID getUsuarioId() {
+		return usuarioId;
 	}
 
 	@Override

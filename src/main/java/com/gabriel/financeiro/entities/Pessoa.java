@@ -3,6 +3,9 @@ package com.gabriel.financeiro.entities;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.hibernate.annotations.TenantId;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -15,6 +18,11 @@ public class Pessoa {
 	@Id
 	@GeneratedValue
 	private UUID id;
+
+	// Dono do registro: preenchido e filtrado pelo Hibernate a partir do usuário logado (UsuarioTenantResolver)
+	@TenantId
+	@Column(name = "usuario_id")
+	private UUID usuarioId;
 	private String nome;
 
 	public Pessoa() {
@@ -39,6 +47,10 @@ public class Pessoa {
 
 	public void setNome(String nome) {
 		this.nome = nome;
+	}
+
+	public UUID getUsuarioId() {
+		return usuarioId;
 	}
 
 	@Override

@@ -41,6 +41,9 @@ public class Usuario {
 	@Column(length = 60)
 	private String senha;
 
+	// Usuário que fez o pré-cadastro (convite); nulo para quem se cadastrou sozinho
+	private UUID convidadoPor;
+
 	public Usuario() {
 	}
 
@@ -98,6 +101,14 @@ public class Usuario {
 
 	public void setSenha(String senha) {
 		this.senha = senha;
+	}
+
+	public UUID getConvidadoPor() {
+		return convidadoPor;
+	}
+
+	public void setConvidadoPor(UUID convidadoPor) {
+		this.convidadoPor = convidadoPor;
 	}
 
 	public boolean isPrimeiroAcessoPendente() {

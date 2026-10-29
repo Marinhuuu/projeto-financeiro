@@ -36,7 +36,7 @@ O único teste (`FinanceiroApplicationTests.contextLoads`) sobe o contexto compl
 
 ```
 src/main/java/com/gabriel/financeiro/
-  config/       autenticação (interceptor, sessão, BCrypt, advice da navbar)
+  config/       autenticação (interceptor, sessão, BCrypt, CSRF, limite de tentativas, dono dos dados, advice da navbar)
   controller/   @Controller MVC — retornam nomes de templates ou "redirect:/..."
   service/      regras de negócio
   repository/   interfaces JpaRepository (JPQL com text blocks """ ... """)
@@ -62,7 +62,7 @@ src/main/resources/
 | `FaturaCartao` | uma por cartão + `mesReferencia`/`anoReferencia` (unique); `valorTotal` e `statusFatura` são recalculados a partir das parcelas por `FaturaCartaoService.sincronizar` |
 | `Parcela` | gerada para despesas no cartão; ligada a uma `Despesa` e a uma `FaturaCartao` |
 | `CicloFinanceiro` / `ConfiguracaoFinanceira` | ciclo mensal; o dia de fechamento segue o dos cartões (`CicloFinanceiroService.getDiaFechamento`: o mais comum, empate = menor); `ConfiguracaoFinanceira` só vale sem cartões. Ciclos gravados só são reaproveitados com as datas exatas (os antigos, de outro dia, ficam órfãos no banco) |
-| `Usuario` | nome, sobrenome, CPF (único, salvo só com 11 dígitos, validado pelos dígitos verificadores) e `dataNascimento` (`@DateTimeFormat` ISO para o `<input type="date">`); `senha` guarda **somente o hash BCrypt** (nulo = primeiro acesso pendente) |
+| `Usuario` | nome, sobrenome, CPF (único, salvo só com 11 dígitos, validado pelos dígitos verificadores) e `dataNascimento` (`@DateTimeFormat` ISO para o `<input type="date">`); `senha` guarda **somente o hash BCrypt** (nulo = primeiro acesso pendente); `convidadoPor` = quem fez o pré-cadastro |
 
 Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceiroService`, `ParcelaService`):
 
@@ -81,7 +81,10 @@ Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceir
 
 - Login por CPF + senha em `/login` (`LoginController`); sessão HTTP com as chaves de `config/SessaoUsuario` (a sessão é recriada no login).
 - `config/AutenticacaoInterceptor` protege todas as rotas, exceto `/login`, `/primeiro-acesso`, `/error` e estáticos (lista em `SegurancaConfig`). Sem sessão: redirect para `/login`; requisição AJAX (`X-Requested-With`) recebe 401 em JSON.
-- **Primeiro acesso (uma única vez por CPF):** CPF sem cadastro ou cadastrado sem senha vai para `/primeiro-acesso`, onde o usuário confirma/preenche nome, sobrenome e nascimento e escolhe a senha. Depois que existe hash, o CPF só entra com senha.
+- **Dados por usuário:** `Categoria`, `Pessoa`, `CartaoCredito`, `Receita`, `Despesa`, `Parcela` e `FaturaCartao` têm `@TenantId usuarioId` (coluna `usuario_id`). O Hibernate preenche o campo ao gravar e filtra **todas** as consultas (inclusive `findById`) pelo usuário da sessão (`config/UsuarioTenantResolver`; fora de requisição logada vale `SEM_USUARIO` e nada é retornado). Nova entidade com dados do usuário precisa do mesmo campo e entrar em `config/MigracaoDonoDosDados`, que cria a coluna antes do Hibernate e atribui registros antigos sem dono (variável `CPF_DONO_DADOS_ANTIGOS` ou o único usuário). `FormaPagamento`, `CicloFinanceiro`, `ConfiguracaoFinanceira` e `Usuario` são globais.
+- **Convites e primeiro acesso (uma única vez por CPF):** em `/usuario` o usuário vê/edita só a si mesmo e convida outros CPFs (pré-cadastro com `convidadoPor`; só convites não usados podem ser excluídos). No `/primeiro-acesso` o convidado confirma a data de nascimento do convite e escolhe a senha (nome e nascimento do convite não são exibidos). CPF sem convite só entra quando o banco não tem nenhum usuário (instalação nova). Depois que existe hash, o CPF só entra com senha.
+- `config/LimiteTentativas` bloqueia por 15 min após 5 erros por CPF (login e confirmação do primeiro acesso) ou 20 por IP.
+- **CSRF:** `config/ProtecaoCsrf` recusa com 403 todo POST sem o token da sessão. Formulários com `th:action` recebem o campo oculto `_csrf` automaticamente; `fetch` deve enviar o cabeçalho `X-CSRF-TOKEN` com o model attribute `csrfToken` (ver `parcelas.html`).
 - Senha: mínimo 8 caracteres com letras e números, máximo 72 bytes (limite do BCrypt). Hash via bean `PasswordEncoder` (`BCryptPasswordEncoder`, dependência `spring-security-crypto`; o Spring Security completo **não** está no projeto).
 - Nunca deixe o formulário bindar `senha` direto na entidade: use `@InitBinder` com `setDisallowedFields("senha")`.
 - O nome do usuário logado chega à navbar pelo model attribute `usuarioLogadoNome` (`UsuarioLogadoAdvice`).

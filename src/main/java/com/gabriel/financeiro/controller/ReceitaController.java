@@ -1,6 +1,8 @@
 package com.gabriel.financeiro.controller;
 
 import java.math.BigDecimal;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -111,15 +113,15 @@ public class ReceitaController {
     @PostMapping("/update/{id}")
     public String salvarEdicao(@PathVariable UUID id, Receita receita, RedirectAttributes redirectAttributes) {
         try {
-            receitaServ.updateReceita(id, receita);
-            redirectAttributes.addFlashAttribute("mensagem", "Receita atualizada com sucesso!");
+            Receita salva = receitaServ.updateReceita(id, receita);
+            redirectAttributes.addFlashAttribute("mensagem", "Receita atualizada " + descreverCiclo(salva));
             redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+            return redirecionarParaCiclo(salva, redirectAttributes);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("mensagem", "Erro ao atualizar receita: " + MensagemErro.de(e));
             redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
             return "redirect:/receita/update/" + id;
         }
-        return "redirect:/receita/receitas";
     }
 
     // ==========================================
@@ -129,14 +131,30 @@ public class ReceitaController {
     @PostMapping("/create")
     public String insertReceita(Receita receita, RedirectAttributes redirectAttributes) {
         try {
-            receitaServ.insertReceita(receita);
-            redirectAttributes.addFlashAttribute("mensagem", "Receita cadastrada com sucesso!");
+            Receita salva = receitaServ.insertReceita(receita);
+            redirectAttributes.addFlashAttribute("mensagem", (salva.isParteDeRecorrencia()
+                    ? salva.getTotalOcorrencias() + " receitas cadastradas (uma por mês), a primeira "
+                    : "Receita cadastrada ") + descreverCiclo(salva));
             redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+            return redirecionarParaCiclo(salva, redirectAttributes);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar receita: " + MensagemErro.de(e));
             redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+            return "redirect:/receita";
         }
-        return "redirect:/receita";
+    }
+
+    // A lista de receitas mostra um ciclo por vez: depois de salvar, abre o ciclo
+    // da receita (uma data futura cai num ciclo que não é o atual)
+    private String redirecionarParaCiclo(Receita receita, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addAttribute(CicloSelecionado.PARAMETRO, YearMonth.from(receita.getCiclo().getDataFim()).toString());
+        return "redirect:/receita/receitas";
+    }
+
+    private static String descreverCiclo(Receita receita) {
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return "no ciclo de " + receita.getCiclo().getDataInicio().format(formato)
+                + " a " + receita.getCiclo().getDataFim().format(formato) + ".";
     }
 
     // ==========================================

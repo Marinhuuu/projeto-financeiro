@@ -45,8 +45,9 @@ public class ParcelaService {
 		return parcelaRepo.listarDoCiclo(cicloService.faturasDoCiclo(ciclo), pageable);
 	}
 
+	// Tudo o que falta pagar: pendentes e atrasadas (pendente + pago = total)
 	public BigDecimal calcularTotalPendente(CicloFinanceiro ciclo) {
-	    return somarPorStatus(StatusParcela.PENDENTE, ciclo);
+	    return somarPorStatus(StatusParcela.PENDENTE, ciclo).add(somarPorStatus(StatusParcela.ATRASADA, ciclo));
 	}
 
 	public BigDecimal calcularTotalPago(CicloFinanceiro ciclo) {

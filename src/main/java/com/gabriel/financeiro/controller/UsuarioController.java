@@ -2,7 +2,6 @@ package com.gabriel.financeiro.controller;
 
 import java.util.UUID;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.config.SessaoUsuario;
 import com.gabriel.financeiro.entities.Usuario;
 import com.gabriel.financeiro.service.UsuarioService;
@@ -122,7 +122,7 @@ public class UsuarioController {
 	}
 
 	private void carregarListagem(int page, int size, HttpServletRequest request, Model model) {
-		Pageable pageable = PageRequest.of(page, size, Sort.by("nome").ascending().and(Sort.by("sobrenome")));
+		Pageable pageable = Paginacao.de(page, size, Sort.by("nome").ascending().and(Sort.by("sobrenome")));
 		model.addAttribute("paginaUsuario", usuarioServ.listUsuario(SessaoUsuario.usuarioId(request), pageable));
 		model.addAttribute("usuarioLogadoId", SessaoUsuario.usuarioId(request));
 	}

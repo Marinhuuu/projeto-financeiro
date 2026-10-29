@@ -3,7 +3,6 @@ package com.gabriel.financeiro.controller;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.service.CartaoService;
 
@@ -33,7 +33,7 @@ public class CartaoController {
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size,
 			Model model) {
-		Pageable pageable = PageRequest.of(page, size, Sort.by("nome").ascending());
+		Pageable pageable = Paginacao.de(page, size, Sort.by("nome").ascending());
 		Page<CartaoCredito> paginaCartao = cartaoServ.ListCartao(pageable);
 
 		model.addAttribute("cartaoCredito", new CartaoCredito());

@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.config.CicloSelecionado;
 import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
@@ -54,7 +54,7 @@ public class ReceitaController {
             Model model) {
 
         Pageable pageableReceita =
-                PageRequest.of(
+                Paginacao.de(
                         page,
                         size,
                         Sort.by("dataEntrada").descending()

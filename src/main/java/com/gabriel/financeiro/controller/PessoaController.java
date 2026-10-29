@@ -3,7 +3,6 @@ package com.gabriel.financeiro.controller;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.entities.Pessoa;
 import com.gabriel.financeiro.service.PessoaService;
 
@@ -34,7 +34,7 @@ public class PessoaController {
             Model model) {
 
         Pageable pageable =
-                PageRequest.of(
+                Paginacao.de(
                         page,
                         size,
                         Sort.by("nome").ascending()

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.config.CicloSelecionado;
 import com.gabriel.financeiro.dto.GastoDoCiclo;
 import com.gabriel.financeiro.entities.CartaoCredito;
@@ -62,7 +63,7 @@ public class DespesaController {
 			@RequestParam(name = CicloSelecionado.PARAMETRO, required = false) String cicloParam,
 			HttpServletRequest request, Model model) {
 
-		Pageable pageable = PageRequest.of(page, size, Sort.by("dataCompra").descending());
+		Pageable pageable = Paginacao.de(page, size, Sort.by("dataCompra").descending());
 
 		CicloFinanceiro ciclo = cicloSelecionado.resolver(cicloParam, request, model);
 
@@ -136,7 +137,7 @@ public class DespesaController {
 			@RequestParam(name = CicloSelecionado.PARAMETRO, required = false) String cicloParam,
 			HttpServletRequest request, Model model) {
 
-		Pageable pageable = PageRequest.of(page, size);
+		Pageable pageable = Paginacao.de(page, size);
 
 		CicloFinanceiro ciclo = cicloSelecionado.resolver(cicloParam, request, model);
 

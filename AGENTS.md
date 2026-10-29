@@ -61,7 +61,7 @@ src/main/resources/
 | `CartaoCredito` | tem `diaFechamento` (e vencimento) usados para calcular faturas |
 | `FaturaCartao` | uma por cartão + `mesReferencia`/`anoReferencia` (unique); `valorTotal` e `statusFatura` são recalculados a partir das parcelas por `FaturaCartaoService.sincronizar` |
 | `Parcela` | gerada para despesas no cartão; ligada a uma `Despesa` e a uma `FaturaCartao` |
-| `CicloFinanceiro` / `ConfiguracaoFinanceira` | ciclo mensal; o dia de fechamento segue o dos cartões (`CicloFinanceiroService.getDiaFechamento`: o mais comum, empate = menor); `ConfiguracaoFinanceira` só vale sem cartões. Ciclos gravados só são reaproveitados com as datas exatas (os antigos, de outro dia, ficam órfãos no banco) |
+| `CicloFinanceiro` / `ConfiguracaoFinanceira` | ciclo mensal; o dia de fechamento segue o dos cartões (`CicloFinanceiroService.getDiaFechamento`: o mais comum, empate = menor); `ConfiguracaoFinanceira` só vale sem cartões. Ciclos gravados só são reaproveitados com as datas exatas (os antigos, de outro dia, ficam órfãos no banco); únicos por `dataInicio` + `dataFim` (`config/RestricaoCicloConfig` remove a restrição antiga só por início) |
 | `Usuario` | nome, sobrenome, CPF (único, salvo só com 11 dígitos, validado pelos dígitos verificadores) e `dataNascimento` (`@DateTimeFormat` ISO para o `<input type="date">`); `senha` guarda **somente o hash BCrypt** (nulo = primeiro acesso pendente); `convidadoPor` = quem fez o pré-cadastro |
 
 Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceiroService`, `ParcelaService`):
@@ -100,8 +100,9 @@ Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceir
   redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso" | "erro");
   return "redirect:/rota";
   ```
+  Só a mensagem de `RuntimeException` "pura" é de negócio; para exibir o erro de um `catch (Exception e)` use `MensagemErro.de(e)` (outras exceções viram mensagem genérica e vão para o log). Exceções não tratadas caem no `config/TratamentoErrosAdvice` (redirect para a home com a mensagem; AJAX recebe JSON) e páginas de erro usam `templates/error.html`.
 - Padrão POST-redirect-GET; formulários bindam diretamente na entidade (ex.: `Despesa` com `categoria.id`, `cartao.id`). Services recarregam as associações pelo id antes de salvar.
-- Listagens paginadas com `PageRequest.of(page, size, Sort...)` e `@RequestParam(defaultValue = ...)`.
+- Listagens paginadas com `Paginacao.de(page, size, Sort...)` (`config/Paginacao`: página >= 0, tamanho 1–100) e `@RequestParam(defaultValue = ...)`.
 - Seções de código separadas por comentários-banner `// ===== TÍTULO =====`. Nomes de métodos em português (alguns legados em PascalCase, ex. `ListDespesa`; mantenha o existente ao editar).
 - Rotas seguem `/{recurso}` (tela/cadastro), `/{recurso}/{plural}` (gerenciar), `/create`, `/update/{id}`, `/delete/{id}` ou `/excluir`.
 

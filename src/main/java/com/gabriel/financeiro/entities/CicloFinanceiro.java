@@ -11,7 +11,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "ciclo_financeiro", uniqueConstraints = @UniqueConstraint(columnNames = { "dataInicio" }))
+// Único pelo período inteiro: dias de fechamento diferentes (ex.: 30 e 31) geram ciclos com o mesmo início
+@Table(name = "ciclo_financeiro", uniqueConstraints = @UniqueConstraint(columnNames = { "dataInicio", "dataFim" }))
 public class CicloFinanceiro {
 
     @Id

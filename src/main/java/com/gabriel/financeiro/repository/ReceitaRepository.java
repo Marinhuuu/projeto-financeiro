@@ -22,4 +22,6 @@ public interface ReceitaRepository extends JpaRepository<Receita, UUID> {
 
     boolean existsByCategoria(Categoria categoria);
 
+    List<Receita> findByGrupoRecorrenciaAndOcorrenciaGreaterThanEqual(UUID grupoRecorrencia, Integer ocorrencia);
+
 }

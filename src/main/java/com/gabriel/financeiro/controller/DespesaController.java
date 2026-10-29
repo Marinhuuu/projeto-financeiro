@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.MensagemErro;
 import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.config.CicloSelecionado;
 import com.gabriel.financeiro.dto.GastoDoCiclo;
@@ -121,7 +122,7 @@ public class DespesaController {
 			redirectAttributes.addFlashAttribute("mensagem", "Despesa cadastrada com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar despesa: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar despesa: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/despesa";
@@ -172,7 +173,7 @@ public class DespesaController {
 			redirectAttributes.addFlashAttribute("mensagem", "Despesa excluida com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir despesa: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir despesa: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/despesa/despesas";
@@ -186,7 +187,7 @@ public class DespesaController {
 					excluidas == 1 ? "Despesa excluida com sucesso!" : excluidas + " despesas da recorrencia excluidas com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir recorrencia: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir recorrencia: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/despesa/despesas";
@@ -220,7 +221,7 @@ public class DespesaController {
 			redirectAttributes.addFlashAttribute("mensagem", "Despesa marcada como devolvida!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/despesa/terceiros";
@@ -237,7 +238,7 @@ public class DespesaController {
 			redirectAttributes.addFlashAttribute("mensagem", "Devolucao desfeita com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/despesa/terceiros";

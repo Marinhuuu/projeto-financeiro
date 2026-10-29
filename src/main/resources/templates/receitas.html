@@ -57,6 +57,9 @@
     <!-- NAVBAR -->
     <nav th:replace="~{fragments/navbar :: navbar}"></nav>
 
+    <!-- MENSAGENS -->
+    <div th:replace="~{fragments/navbar :: flash}"></div>
+
 
     <!-- CONTEÚDO -->
 
@@ -217,9 +220,10 @@
                             <td class="px-6 py-4 text-center">
 
                                 <span th:if="${receita.recorrente}"
-                                      class="inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                      class="inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                                      th:text="${receita.parteDeRecorrencia} ? ${receita.ocorrencia + '/' + receita.totalOcorrencias} : 'Sim'">
 
-                                    Sim
+                                          Sim
 
                                 </span>
 
@@ -241,7 +245,21 @@
                             </td>
 
 
-                            <td class="px-6 py-4 text-right">
+                            <td class="px-6 py-4 text-right whitespace-nowrap">
+
+                                <form th:if="${receita.parteDeRecorrencia and receita.ocorrencia < receita.totalOcorrencias}"
+                                      th:action="@{/receita/excluir-recorrencia}"
+                                      method="post"
+                                      class="inline">
+                                    <input type="hidden"
+                                           name="id"
+                                           th:value="${receita.id}">
+                                    <button type="submit"
+                                            onclick="return confirm('Excluir esta receita e todas as próximas desta recorrência?')"
+                                            class="inline-flex items-center gap-1.5 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/50 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/40 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                        Excluir esta e as próximas
+                                    </button>
+                                </form>
 
                                 <form th:action="@{/receita/excluir}"
                                       method="post"

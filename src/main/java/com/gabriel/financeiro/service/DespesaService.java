@@ -40,6 +40,9 @@ public class DespesaService {
 
 	private static final int MAX_OCORRENCIAS = 60;
 
+	// Limite de parcelas geradas num só cadastro (ocorrências x parcelas)
+	private static final int MAX_PARCELAS_GERADAS = 360;
+
 	private final DespesaRepository despesaRepo;
 	private final CicloFinanceiroService cicloService;
 	private final ParcelaRepository parcelaRepo;
@@ -149,6 +152,10 @@ public class DespesaService {
 			throw new RuntimeException("O valor da despesa deve ser maior que zero");
 		}
 
+		if (despesa.getValorTotal().stripTrailingZeros().scale() > 2) {
+			throw new RuntimeException("O valor deve ter no máximo 2 casas decimais");
+		}
+
 		if (despesa.getDataCompra() == null) {
 			throw new RuntimeException("Informe a data da compra");
 		}
@@ -194,6 +201,11 @@ public class DespesaService {
 				despesa.setQtdParcelas(1);
 			} else if (despesa.getQtdParcelas() > MAX_PARCELAS) {
 				throw new RuntimeException("A quantidade de parcelas deve ser no máximo " + MAX_PARCELAS);
+			}
+
+			// Cada parcela precisa de pelo menos 1 centavo
+			if (despesa.getValorTotal().compareTo(BigDecimal.valueOf(despesa.getQtdParcelas(), 2)) < 0) {
+				throw new RuntimeException("O valor é pequeno demais para " + despesa.getQtdParcelas() + " parcelas");
 			}
 
 		} else {
@@ -247,6 +259,12 @@ public class DespesaService {
 
 			ocorrencias = total;
 
+			// Recorrência parcelada gera ocorrências x parcelas de uma vez
+			if (isCartao && ocorrencias * despesa.getQtdParcelas() > MAX_PARCELAS_GERADAS) {
+				throw new RuntimeException("Recorrência parcelada gera parcelas demais (máximo de "
+						+ MAX_PARCELAS_GERADAS + "). Reduza os meses ou as parcelas.");
+			}
+
 			despesa.setGrupoRecorrencia(UUID.randomUUID());
 			despesa.setOcorrencia(1);
 
@@ -259,6 +277,8 @@ public class DespesaService {
 
 		Despesa primeira = null;
 
+		Set<FaturaCartao> faturasAfetadas = new LinkedHashSet<>();
+
 		for (int i = 0; i < ocorrencias; i++) {
 
 			Despesa atual = i == 0 ? despesa : copiarParaMesSeguinte(despesa, i);
@@ -270,12 +290,17 @@ public class DespesaService {
 
 			if (isCartao) {
 
-				gerarParcelas(salva);
+				faturasAfetadas.addAll(gerarParcelas(salva));
 			}
 
 			if (primeira == null) {
 				primeira = salva;
 			}
+		}
+
+		// Cada fatura é recalculada uma vez, depois de receber todas as parcelas
+		for (FaturaCartao fatura : faturasAfetadas) {
+			faturaService.sincronizar(fatura);
 		}
 
 		return primeira;
@@ -414,7 +439,13 @@ public class DespesaService {
 	// GERAR PARCELAS
 	// =========================================================
 
-	private void gerarParcelas(Despesa despesa) {
+	/*
+	 * Gera as parcelas e devolve as faturas que as receberam
+	 * (quem chama deve sincronizá-las).
+	 */
+	private Set<FaturaCartao> gerarParcelas(Despesa despesa) {
+
+		Set<FaturaCartao> faturas = new LinkedHashSet<>();
 
 		Integer qtdParcelas = despesa.getQtdParcelas();
 
@@ -460,7 +491,9 @@ public class DespesaService {
 
 			parcelaRepo.save(parcela);
 
-			faturaService.sincronizar(fatura);
+			faturas.add(fatura);
 		}
+
+		return faturas;
 	}
 }

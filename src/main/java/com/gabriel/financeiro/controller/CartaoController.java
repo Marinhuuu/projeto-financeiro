@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.MensagemErro;
 import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.entities.CartaoCredito;
 import com.gabriel.financeiro.service.CartaoService;
@@ -49,7 +50,7 @@ public class CartaoController {
 			redirectAttributes.addFlashAttribute("mensagem", "Cartao cadastrado com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar cartao: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar cartao: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/cartao";
@@ -72,7 +73,7 @@ public class CartaoController {
 			redirectAttributes.addFlashAttribute("mensagem", "Cartao atualizado com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao atualizar cartao: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao atualizar cartao: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/cartao";
@@ -85,7 +86,7 @@ public class CartaoController {
 			redirectAttributes.addFlashAttribute("mensagem", "Cartao excluido com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir cartao: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir cartao: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/cartao";

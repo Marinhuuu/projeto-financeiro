@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.MensagemErro;
 import com.gabriel.financeiro.config.LimiteTentativas;
 import com.gabriel.financeiro.config.SessaoUsuario;
 import com.gabriel.financeiro.entities.Usuario;
@@ -187,13 +188,13 @@ public class LoginController {
 
 		} catch (UsuarioService.IdentidadeNaoConfirmada e) {
 			limiteTentativas.registrarFalha(chaveCpf(cpf));
-			redirectAttributes.addFlashAttribute("mensagem", e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 
 			return "redirect:/primeiro-acesso";
 
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 			redirectAttributes.addFlashAttribute("usuario", dados);
 

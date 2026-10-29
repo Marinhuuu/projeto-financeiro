@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.gabriel.financeiro.config.MensagemErro;
 import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.config.CicloSelecionado;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
@@ -87,7 +88,7 @@ public class ParcelaController {
     private ResponseEntity<Map<String, Object>> respostaErro(Exception e) {
         Map<String, Object> response = new HashMap<>();
         response.put("sucesso", false);
-        response.put("mensagem", e.getMessage());
+        response.put("mensagem", MensagemErro.de(e));
         return ResponseEntity.badRequest().body(response);
     }
 

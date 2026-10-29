@@ -36,6 +36,15 @@ public class Receita {
 
 	private Boolean recorrente;
 
+	// ===== RECORRÊNCIA =====
+	// Receitas geradas juntas por "repetir mensalmente" compartilham o mesmo grupo.
+	private UUID grupoRecorrencia;
+
+	// Posição desta receita na recorrência (1..totalOcorrencias)
+	private Integer ocorrencia;
+
+	private Integer totalOcorrencias;
+
 	@ManyToOne
 	@JoinColumn(name = "categoriaId", nullable = false)
 	private Categoria categoria;
@@ -112,6 +121,34 @@ public class Receita {
 
 	public void setCiclo(CicloFinanceiro ciclo) {
 		this.ciclo = ciclo;
+	}
+
+	public UUID getGrupoRecorrencia() {
+		return grupoRecorrencia;
+	}
+
+	public void setGrupoRecorrencia(UUID grupoRecorrencia) {
+		this.grupoRecorrencia = grupoRecorrencia;
+	}
+
+	public Integer getOcorrencia() {
+		return ocorrencia;
+	}
+
+	public void setOcorrencia(Integer ocorrencia) {
+		this.ocorrencia = ocorrencia;
+	}
+
+	public Integer getTotalOcorrencias() {
+		return totalOcorrencias;
+	}
+
+	public void setTotalOcorrencias(Integer totalOcorrencias) {
+		this.totalOcorrencias = totalOcorrencias;
+	}
+
+	public boolean isParteDeRecorrencia() {
+		return grupoRecorrencia != null;
 	}
 
 	public UUID getUsuarioId() {

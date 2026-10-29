@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.MensagemErro;
 import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.entities.Categoria;
 import com.gabriel.financeiro.service.CategoriaService;
@@ -61,7 +62,7 @@ public class CategoriaController {
 			redirectAttributes.addFlashAttribute("mensagem", "Categoria cadastrada com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar categoria: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar categoria: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/categoria";
@@ -75,7 +76,7 @@ public class CategoriaController {
 			redirectAttributes.addFlashAttribute("mensagem", "Categoria atualizada com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao atualizar categoria: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao atualizar categoria: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/categoria";
@@ -100,7 +101,7 @@ public class CategoriaController {
 			redirectAttributes.addFlashAttribute("mensagem", "Categoria excluida com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir categoria: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir categoria: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/categoria";

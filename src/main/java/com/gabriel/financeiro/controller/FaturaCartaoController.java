@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.MensagemErro;
 import com.gabriel.financeiro.config.CicloSelecionado;
 import com.gabriel.financeiro.entities.CicloFinanceiro;
 import com.gabriel.financeiro.entities.FaturaCartao;
@@ -118,7 +119,7 @@ public class FaturaCartaoController {
             redirectAttributes.addFlashAttribute("mensagem", "Fatura marcada como paga.");
             redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("mensagem", e.getMessage());
+            redirectAttributes.addFlashAttribute("mensagem", MensagemErro.de(e));
             redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
         }
 
@@ -136,7 +137,7 @@ public class FaturaCartaoController {
             redirectAttributes.addFlashAttribute("mensagem", "Pagamento da fatura desfeito.");
             redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("mensagem", e.getMessage());
+            redirectAttributes.addFlashAttribute("mensagem", MensagemErro.de(e));
             redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
         }
 

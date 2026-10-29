@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.MensagemErro;
 import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.config.CicloSelecionado;
 import com.gabriel.financeiro.entities.Categoria;
@@ -98,7 +99,7 @@ public class ReceitaController {
             redirectAttributes.addFlashAttribute("mensagem", "Receita cadastrada com sucesso!");
             redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar receita: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar receita: " + MensagemErro.de(e));
             redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
         }
         return "redirect:/receita";
@@ -147,7 +148,21 @@ public class ReceitaController {
          redirectAttributes.addFlashAttribute("mensagem", "Receita excluida com sucesso!");
          redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
      } catch (Exception e) {
-         redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir receita: " + e.getMessage());
+         redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir receita: " + MensagemErro.de(e));
+         redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
+     }
+     return "redirect:/receita/receitas";
+ }
+
+ @PostMapping("/excluir-recorrencia")
+ public String excluirRecorrencia(@RequestParam("id") UUID id, RedirectAttributes redirectAttributes) {
+     try {
+         int excluidas = receitaServ.excluirRecorrenciaAPartirDe(id);
+         redirectAttributes.addFlashAttribute("mensagem",
+                 excluidas == 1 ? "Receita excluida com sucesso!" : excluidas + " receitas da recorrencia excluidas com sucesso!");
+         redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
+     } catch (Exception e) {
+         redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir recorrencia: " + MensagemErro.de(e));
          redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
      }
      return "redirect:/receita/receitas";

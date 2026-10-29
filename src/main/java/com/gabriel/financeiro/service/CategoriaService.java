@@ -59,6 +59,12 @@ public class CategoriaService {
 		Categoria existente = categoriaRepo.findById(id)
 				.orElseThrow(() -> new RuntimeException("Categoria nao encontrada"));
 
+		// Uma despesa não pode ficar com categoria de receita (nem o contrário)
+		if (!categoria.getTipo().equalsIgnoreCase(existente.getTipo())
+				&& (despesaRepo.existsByCategoria(existente) || receitaRepo.existsByCategoria(existente))) {
+			throw new RuntimeException("Não é possível mudar o tipo: a categoria possui lançamentos vinculados");
+		}
+
 		existente.setNome(categoria.getNome());
 		existente.setTipo(categoria.getTipo());
 

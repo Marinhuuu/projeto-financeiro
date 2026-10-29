@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.MensagemErro;
 import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.entities.Pessoa;
 import com.gabriel.financeiro.service.PessoaService;
@@ -56,7 +57,7 @@ public class PessoaController {
             redirectAttributes.addFlashAttribute("mensagem", "Pessoa cadastrada com sucesso!");
             redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar pessoa: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar pessoa: " + MensagemErro.de(e));
             redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
         }
         return "redirect:/pessoa";
@@ -71,7 +72,7 @@ public class PessoaController {
             redirectAttributes.addFlashAttribute("mensagem", "Pessoa excluida com sucesso!");
             redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir pessoa: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir pessoa: " + MensagemErro.de(e));
             redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
         }
         return "redirect:/pessoa";

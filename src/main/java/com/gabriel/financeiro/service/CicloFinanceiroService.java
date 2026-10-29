@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -48,15 +49,7 @@ public class CicloFinanceiroService {
 
     private void fecharCiclosAnteriores(LocalDate hoje) {
 
-        List<CicloFinanceiro> ciclos =
-                cicloRepo.findByDataFimBeforeAndFechadoFalse(hoje);
-
-        for (CicloFinanceiro ciclo : ciclos) {
-
-            ciclo.setFechado(true);
-
-            cicloRepo.save(ciclo);
-        }
+        cicloRepo.fecharCiclosAntesDe(hoje);
     }
 
     private LocalDate ajustarDia(
@@ -76,14 +69,12 @@ public class CicloFinanceiroService {
             LocalDate inicio,
             LocalDate fim) {
 
-        CicloFinanceiro ciclo =
-                new CicloFinanceiro();
+        // Se outra requisição criou o mesmo ciclo agora, usa o dela
+        cicloRepo.inserirSeNaoExistir(UUID.randomUUID(), inicio, fim);
 
-        ciclo.setDataInicio(inicio);
-        ciclo.setDataFim(fim);
-        ciclo.setFechado(false);
-
-        return cicloRepo.save(ciclo);
+        return cicloRepo
+                .findFirstByDataInicioAndDataFim(inicio, fim)
+                .orElseThrow(() -> new RuntimeException("Não foi possível criar o ciclo financeiro"));
     }
 
     /*

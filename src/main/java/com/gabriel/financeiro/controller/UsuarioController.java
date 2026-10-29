@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.gabriel.financeiro.config.MensagemErro;
 import com.gabriel.financeiro.config.Paginacao;
 import com.gabriel.financeiro.config.SessaoUsuario;
 import com.gabriel.financeiro.entities.Usuario;
@@ -61,7 +62,7 @@ public class UsuarioController {
 			redirectAttributes.addFlashAttribute("mensagem", "Usuário cadastrado com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar usuário: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao cadastrar usuário: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/usuario";
@@ -92,7 +93,7 @@ public class UsuarioController {
 			redirectAttributes.addFlashAttribute("mensagem", "Usuário atualizado com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao atualizar usuário: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao atualizar usuário: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 			return "redirect:/usuario/update/" + id;
 		}
@@ -115,7 +116,7 @@ public class UsuarioController {
 			redirectAttributes.addFlashAttribute("mensagem", "Usuário excluído com sucesso!");
 			redirectAttributes.addFlashAttribute("tipoMensagem", "sucesso");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir usuário: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("mensagem", "Erro ao excluir usuário: " + MensagemErro.de(e));
 			redirectAttributes.addFlashAttribute("tipoMensagem", "erro");
 		}
 		return "redirect:/usuario";

@@ -1,11 +1,12 @@
 package com.gabriel.financeiro.repository;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import com.gabriel.financeiro.entities.CicloFinanceiro;
 
@@ -19,6 +20,23 @@ public interface CicloFinanceiroRepository
             LocalDate dataInicio,
             LocalDate dataFim);
 
-    List<CicloFinanceiro>
-    findByDataFimBeforeAndFechadoFalse(LocalDate data);
+    // Um único UPDATE em vez de carregar e salvar ciclo por ciclo
+    @Modifying
+    @Query("""
+        UPDATE CicloFinanceiro c
+        SET c.fechado = true
+        WHERE c.dataFim < :data
+          AND c.fechado = false
+    """)
+    int fecharCiclosAntesDe(LocalDate data);
+
+    // Duas requisições ao mesmo tempo podem tentar criar o mesmo ciclo:
+    // a segunda não faz nada (em vez de violar a restrição única)
+    @Modifying
+    @Query(value = """
+        INSERT INTO ciclo_financeiro (id, data_inicio, data_fim, fechado)
+        VALUES (:id, :dataInicio, :dataFim, false)
+        ON CONFLICT DO NOTHING
+    """, nativeQuery = true)
+    int inserirSeNaoExistir(UUID id, LocalDate dataInicio, LocalDate dataFim);
 }

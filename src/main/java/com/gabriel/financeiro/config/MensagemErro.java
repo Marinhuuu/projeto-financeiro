@@ -7,9 +7,10 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 /*
  * Mensagem de erro que pode ser mostrada ao usuário.
  *
- * Erros de negócio são lançados como RuntimeException com a mensagem em pt-BR e
- * são exibidos como estão. Qualquer outra exceção (banco, bugs) tem mensagem
- * técnica: é registrada no log e o usuário vê uma mensagem genérica.
+ * Erros de negócio são lançados como RuntimeException (ou subclasse do próprio
+ * projeto) com a mensagem em pt-BR e são exibidos como estão. Qualquer outra
+ * exceção (banco, bugs) tem mensagem técnica: é registrada no log e o usuário
+ * vê uma mensagem genérica.
  */
 public final class MensagemErro {
 
@@ -22,7 +23,10 @@ public final class MensagemErro {
 
 	public static String de(Exception e) {
 
-		if (e.getClass() == RuntimeException.class && e.getMessage() != null) {
+		boolean deNegocio = e.getClass() == RuntimeException.class
+				|| e.getClass().getName().startsWith("com.gabriel.financeiro.");
+
+		if (deNegocio && e.getMessage() != null) {
 			return e.getMessage();
 		}
 

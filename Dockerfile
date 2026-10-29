@@ -14,7 +14,7 @@ COPY src src
 RUN ./mvnw clean package -DskipTests
 
 # Separa o jar em app.jar + lib/ (formato exigido pelo cache de classes abaixo)
-RUN java -Djarmode=tools -jar target/*.jar extract --destination extraido
+RUN cp target/*.jar app.jar && java -Djarmode=tools -jar app.jar extract --destination extraido
 
 FROM eclipse-temurin:17-jre
 

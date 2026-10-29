@@ -1,0 +1,18 @@
+# O plano gratuito do Render desliga o serviço após 15 min sem acesso, e a próxima
+# abertura leva minutos (a aplicação sobe de novo). Este agendamento acessa a tela
+# de login a cada 10 min para manter o serviço no ar. A tela de login não consulta
+# o banco, então o Neon continua desligando quando ninguém usa o sistema.
+name: Manter acordado
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Acessa a tela de login
+        run: curl --silent --show-error --fail --max-time 300 --output /dev/null --write-out "HTTP %{http_code} em %{time_total}s\n" https://projeto-financeiro-eif6.onrender.com/login

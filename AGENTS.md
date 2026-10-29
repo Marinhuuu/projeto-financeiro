@@ -8,7 +8,7 @@ Sistema web de **controle financeiro pessoal** (receitas, despesas, cartões de 
 
 - **Stack:** Java 17, Spring Boot 4.1 (Web MVC, Data JPA, Validation, DevTools), Thymeleaf, PostgreSQL, Apache POI (dependência presente, ainda sem uso).
 - **Front-end:** templates Thymeleaf + Tailwind via CDN (`cdn.tailwindcss.com`, `darkMode: 'class'`), fonte Inter (Google Fonts). Não há build de front-end.
-- **Deploy:** Docker multi-stage (`Dockerfile`) no Render, porta exposta `10000`.
+- **Deploy:** Docker multi-stage (`Dockerfile`) no Render, porta exposta `10000`. A imagem grava um cache de classes (CDS, `app.jsa`) numa subida de treino sem banco durante o build; um bean novo que acesse o banco na criação do contexto precisa tolerar a falta de conexão (como `MigracaoDonoDosDados`), senão o build quebra. O plano gratuito do Render desliga o serviço ocioso; `.github/workflows/manter-acordado.yml` acessa `/login` a cada 10 min para mantê-lo no ar (a rota pingada não pode consultar o banco, para o Neon continuar desligando quando ninguém usa).
 - **Idioma:** código, mensagens, commits e UI em **português (pt-BR)**.
 
 ## Comandos
@@ -24,7 +24,7 @@ O único teste (`FinanceiroApplicationTests.contextLoads`) sobe o contexto compl
 
 ## Configuração / profiles
 
-- `application.properties`: config comum (JPA `ddl-auto=update`, carregamento em lotes, cookie de sessão, cabeçalhos do proxy). O cache do Thymeleaf só é desligado no profile dev; em prod o cookie de sessão é `Secure`.
+- `application.properties`: config comum (JPA `ddl-auto=update`, carregamento em lotes, cookie de sessão, cabeçalhos do proxy, `open-in-view` desligado, pool sem conexões ociosas para o Neon poder desligar). O cache do Thymeleaf só é desligado no profile dev; em prod o cookie de sessão é `Secure`.
 - `application-dev.properties`: Postgres local em `localhost:5432/financeiro`; senha via `DBPassword` (variável de ambiente ou arquivo `.env` na raiz, não versionado) (URL/usuário têm padrão, sobrescrevíveis por `DBUrl`/`DBUsername`).
 - `application-prod.properties`: lê `DBUrl`, `DBUsername`, `DBPassword` de variáveis de ambiente.
 - Nenhum profile é ativado por padrão — use `SPRING_PROFILES_ACTIVE=dev` ou `prod`.
@@ -61,7 +61,7 @@ src/main/resources/
 | `CartaoCredito` | tem `diaFechamento` (e vencimento) usados para calcular faturas |
 | `FaturaCartao` | uma por cartão + `mesReferencia`/`anoReferencia` (unique); `valorTotal` e `statusFatura` são recalculados a partir das parcelas por `FaturaCartaoService.sincronizar` |
 | `Parcela` | gerada para despesas no cartão; ligada a uma `Despesa` e a uma `FaturaCartao` |
-| `CicloFinanceiro` / `ConfiguracaoFinanceira` | ciclo mensal; criado com `INSERT ... ON CONFLICT DO NOTHING` (requisições simultâneas não colidem); o dia de fechamento segue o dos cartões (`CicloFinanceiroService.getDiaFechamento`: o mais comum, empate = menor); `ConfiguracaoFinanceira` só vale sem cartões. Ciclos gravados só são reaproveitados com as datas exatas (os antigos, de outro dia, ficam órfãos no banco); únicos por `dataInicio` + `dataFim` (`config/RestricaoCicloConfig` remove a restrição antiga só por início) |
+| `CicloFinanceiro` / `ConfiguracaoFinanceira` | ciclo mensal; criado com `INSERT ... ON CONFLICT DO NOTHING` (requisições simultâneas não colidem); o dia de fechamento segue o dos cartões (`CicloFinanceiroService.getDiaFechamento`: o mais comum, empate = menor); fechar os ciclos anteriores (um UPDATE) é feito uma vez por dia; `ConfiguracaoFinanceira` só vale sem cartões. Ciclos gravados só são reaproveitados com as datas exatas (os antigos, de outro dia, ficam órfãos no banco); únicos por `dataInicio` + `dataFim` (`config/RestricaoCicloConfig` remove a restrição antiga só por início) |
 | `Usuario` | nome, sobrenome, CPF (único, salvo só com 11 dígitos, validado pelos dígitos verificadores) e `dataNascimento` (`@DateTimeFormat` ISO para o `<input type="date">`); `senha` guarda **somente o hash BCrypt** (nulo = primeiro acesso pendente); `convidadoPor` = quem fez o pré-cadastro |
 
 Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceiroService`, `ParcelaService`):

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -25,6 +26,9 @@ public class CicloFinanceiroService {
     private final CicloFinanceiroRepository cicloRepo;
     private final ConfiguracaoFinanceiraService configService;
     private final CartaoRepository cartaoRepo;
+
+    // Dia em que os ciclos anteriores foram fechados pela última vez
+    private final AtomicReference<LocalDate> ultimoFechamento = new AtomicReference<>();
 
     public CicloFinanceiroService(
             CicloFinanceiroRepository cicloRepo,
@@ -49,7 +53,13 @@ public class CicloFinanceiroService {
 
     private void fecharCiclosAnteriores(LocalDate hoje) {
 
+        // É um UPDATE: basta uma vez por dia, e não a cada tela aberta
+        if (hoje.equals(ultimoFechamento.get())) {
+            return;
+        }
+
         cicloRepo.fecharCiclosAntesDe(hoje);
+        ultimoFechamento.set(hoje);
     }
 
     private LocalDate ajustarDia(

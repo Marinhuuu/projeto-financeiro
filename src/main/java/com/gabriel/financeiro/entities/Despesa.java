@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import org.hibernate.annotations.TenantId;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,6 +37,8 @@ public class Despesa {
 
 	private BigDecimal valorTotal;
 
+	// ISO (yyyy-MM-dd) para o <input type="date"> vir preenchido na edição
+	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 	private LocalDate dataCompra;
 
 	@ManyToOne

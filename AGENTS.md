@@ -4,7 +4,7 @@ Guia para agentes de IA (e humanos) que trabalham neste repositório.
 
 ## Visão geral
 
-Sistema web de **controle financeiro pessoal** (receitas, despesas, cartões de crédito, faturas, parcelas e despesas feitas em nome de terceiros). Aplicação monolítica server-side renderizada.
+Sistema web de **controle financeiro pessoal** (**MyFin**) (receitas, despesas, cartões de crédito, faturas, parcelas e despesas feitas em nome de terceiros). Aplicação monolítica server-side renderizada.
 
 - **Stack:** Java 17, Spring Boot 4.1 (Web MVC, Data JPA, Validation, DevTools), Thymeleaf, PostgreSQL, Apache POI (dependência presente, ainda sem uso).
 - **Front-end:** templates Thymeleaf + Tailwind via CDN (`cdn.tailwindcss.com`, `darkMode: 'class'`), fonte Inter (Google Fonts). Não há build de front-end.
@@ -110,7 +110,8 @@ Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceir
 
 ## Templates / UI
 
-- Toda página nova deve incluir o Tailwind CDN + config `darkMode: 'class'`, o script de tema e `<div th:replace="~{fragments/navbar :: navbar}">`.
+- O sistema se chama **MyFin** (títulos das abas terminam em ` · MyFin`). Cores e fonte ficam em `static/js/tema-tailwind.js` (paleta `slate` azulada e `indigo` da marca) e o acabamento comum (fundo, sombras, foco, logotipo `myfin-logo`/`myfin-texto`) em `static/css/myfin.css`.
+- Toda página nova deve incluir o Tailwind CDN seguido de `<script th:src="@{/js/tema-tailwind.js}"></script>` e `<link rel="stylesheet" th:href="@{/css/myfin.css}">` (não declare `tailwind.config` na página), o script de tema e `<div th:replace="~{fragments/navbar :: navbar}">`.
 - Mensagens flash (`mensagem`/`tipoMensagem`) são exibidas pelo fragmento `<div th:replace="~{fragments/navbar :: flash}">`; inclua-o logo após a navbar.
 - Suporte a dark mode é obrigatório: use pares `bg-white dark:bg-slate-900`, `text-slate-900 dark:text-white`, etc.
 - Estilo visual: cantos `rounded-xl/2xl`, paleta slate + cor por módulo (receita = emerald, categorias = orange, cartões = amber, etc. — ver navbar).

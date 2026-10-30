@@ -110,7 +110,7 @@ Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceir
 
 ## Templates / UI
 
-- O sistema se chama **MyFin** (títulos das abas terminam em ` · MyFin`). Cores e fonte ficam em `static/js/tema-tailwind.js` (paleta `slate` azulada e `indigo` da marca) e o acabamento comum (fundo, sombras, foco, logotipo `myfin-logo`/`myfin-texto`) em `static/css/myfin.css`.
+- O sistema se chama **MyFin** (títulos das abas terminam em ` · MyFin`). Cores e fonte ficam em `static/js/tema-tailwind.js` (paleta `slate` azulada e `indigo` da marca) e o acabamento comum (fundo, sombras, foco, logotipo `myfin-logo`/`myfin-texto`, marca d'água `static/images/marca-dagua.avif`) em `static/css/myfin.css`.
 - Toda página nova deve incluir o Tailwind CDN seguido de `<script th:src="@{/js/tema-tailwind.js}"></script>` e `<link rel="stylesheet" th:href="@{/css/myfin.css}">` (não declare `tailwind.config` na página), o script de tema e `<div th:replace="~{fragments/navbar :: navbar}">`.
 - Mensagens flash (`mensagem`/`tipoMensagem`) são exibidas pelo fragmento `<div th:replace="~{fragments/navbar :: flash}">`; inclua-o logo após a navbar.
 - Suporte a dark mode é obrigatório: use pares `bg-white dark:bg-slate-900`, `text-slate-900 dark:text-white`, etc.

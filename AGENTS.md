@@ -114,7 +114,8 @@ Regras importantes (ver `DespesaService`, `FaturaCartaoService`, `CicloFinanceir
 - Mensagens flash (`mensagem`/`tipoMensagem`) são exibidas pelo fragmento `<div th:replace="~{fragments/navbar :: flash}">`; inclua-o logo após a navbar.
 - Suporte a dark mode é obrigatório: use pares `bg-white dark:bg-slate-900`, `text-slate-900 dark:text-white`, etc.
 - Estilo visual: cantos `rounded-xl/2xl`, paleta slate + cor por módulo (receita = emerald, categorias = orange, cartões = amber, etc. — ver navbar).
-- Ao adicionar uma tela, adicione o link correspondente em `fragments/navbar.html`.
+- O fragmento `navbar` é um **menu lateral**: fixo à esquerda no desktop (o próprio fragmento põe `padding-left` no `body` a partir de `lg`) e gaveta aberta por um botão no celular. O item da página atual é destacado por script, pela cor em `data-cor`.
+- Ao adicionar uma tela, adicione o link correspondente em `fragments/navbar.html`. Cada link usa a classe `menu-item` e `data-cor` com a cor do módulo; agrupe-o na seção certa (Receitas, Despesas, Cartão, Cadastros).
 
 ## Commits
 
